@@ -1,0 +1,18 @@
+from fastapi import FastAPI, HTTPException
+from src.schemas.user import UserCreate 
+from typing import List
+
+app = FastAPI()
+
+app_db = []
+
+@app.post("/usuarios", status_code=201)
+def criar_usuario(user: UserCreate):
+    # Verifica se e-mail já está em uso
+    for existing_user in app_db:
+        if existing_user['email'] == user.email:
+            raise HTTPException(status_code=400, detail="E-mail já cadastrado.")
+    
+    novo_usuario = user.dict()
+    app_db.append(novo_usuario)
+    return {"message": "Usuário criado com sucesso!", "usuario": novo_usuario}
