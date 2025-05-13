@@ -1,48 +1,75 @@
 // src/Register.js
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 function Register() {
-  const [nome, setNome] = useState('');
-  const [email, setEmail] = useState('');
-  const [senha, setSenha] = useState('');
+  const [login, setLogin] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [mensagem, setMensagem] = useState("");
+  const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log({ nome, email, senha }); // Futuramente: enviar para API
-    alert('Cadastro enviado (ainda não integrado)');
-  };
+ const handleSubmit = async (e) => {
+  e.preventDefault();
+  setMensagem('');
+
+  try {
+    const response = await fetch('http://localhost:8000/usuarios', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ login, email, password }),  // ajuste dos campos
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      if (Array.isArray(data.detail)) {
+        const erros = data.detail.map((err) => err.msg).join(" | ");
+        setMensagem(erros);
+      } else if (typeof data.detail === 'string') {
+        setMensagem(data.detail);
+      } else {
+        setMensagem("Erro ao cadastrar.");
+      }
+      return;
+    }
+
+    setMensagem(data.message);
+    setTimeout(() => navigate('/'), 2000);
+  } catch (error) {
+    setMensagem('Erro de conexão com o servidor.');
+  }
+};
 
   return (
     <div style={styles.container}>
       <div style={styles.card}>
         <h2 style={styles.title}>Cadastro</h2>
         <form onSubmit={handleSubmit}>
-          <input
-            type="text"
-            placeholder="Nome de usuário"
-            value={nome}
-            onChange={(e) => setNome(e.target.value)}
+          <input type="text" style={styles.text}
+            value={login}
+            onChange={(e) => setLogin(e.target.value)}
             required
-            style={styles.input}
+            placeholder="Login"
           />
-          <input
-            type="email"
-            placeholder="E-mail"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+
+            <input type="email" style={styles.text}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              placeholder="Email"
+            />
+            <input type="password" style={styles.text}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
             required
-            style={styles.input}
-          />
-          <input
-            type="password"
             placeholder="Senha"
-            value={senha}
-            onChange={(e) => setSenha(e.target.value)}
-            required
-            style={styles.input}
-          />
+            />
           <button type="submit" style={styles.button}>Cadastrar</button>
         </form>
+        {mensagem && <p style={styles.message}>{mensagem}</p>}
       </div>
     </div>
   );
@@ -77,16 +104,45 @@ const styles = {
     border: '1px solid #ccc',
     fontSize: 14,
   },
+  password: {
+    width: '100%',
+    padding: 12,
+    margin: '10px 0',
+    borderRadius: 5,
+    border: '1px solid #ccc',
+    fontSize: 14,
+  },
+  email: {
+    width: '100%',
+    padding: 12,
+    margin: '10px 0',
+    borderRadius: 5,
+    border: '1px solid #ccc',
+    fontSize: 14,
+  },
+  text: {
+    width: '100%',
+    padding: 12,
+    margin: '10px 0',
+    borderRadius: 5,
+    border: '1px solid #ccc',
+    fontSize: 14,
+  },
   button: {
     width: '100%',
     padding: 12,
-    backgroundColor: '#673AB7',
+    backgroundColor: '#673AB7',  // Mesma cor roxa do login
     color: 'white',
     border: 'none',
     borderRadius: 5,
     fontSize: 16,
     cursor: 'pointer',
     marginTop: 10,
+  },
+  message: {
+    marginTop: 15,
+    textAlign: 'center',
+    color: '#444',
   },
 };
 
