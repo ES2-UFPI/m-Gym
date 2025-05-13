@@ -1,30 +1,30 @@
+// src/Register.js
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 
-function Login() {
-  const navigate = useNavigate();
+function Register() {
+  const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [mensagem, setMensagem] = useState('');
+  const [senha, setSenha] = useState('');
 
-  const handleLogin = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-
-    const response = await fetch('http://localhost:3001/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    });
-
-    const data = await response.json();
-    setMensagem(data.message);
+    console.log({ nome, email, senha }); // Futuramente: enviar para API
+    alert('Cadastro enviado (ainda não integrado)');
   };
 
   return (
     <div style={styles.container}>
       <div style={styles.card}>
-        <h2 style={styles.title}>Bem Vindo ao m-GYM</h2>
-        <form onSubmit={handleLogin}>
+        <h2 style={styles.title}>Cadastro</h2>
+        <form onSubmit={handleSubmit}>
+          <input
+            type="text"
+            placeholder="Nome de usuário"
+            value={nome}
+            onChange={(e) => setNome(e.target.value)}
+            required
+            style={styles.input}
+          />
           <input
             type="email"
             placeholder="E-mail"
@@ -36,17 +36,13 @@ function Login() {
           <input
             type="password"
             placeholder="Senha"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            value={senha}
+            onChange={(e) => setSenha(e.target.value)}
             required
             style={styles.input}
           />
-          <button type="submit" style={styles.button}>Entrar</button>
+          <button type="submit" style={styles.button}>Cadastrar</button>
         </form>
-        <button onClick={() => navigate('/cadastro')} style={styles.linkButton}>
-          Criar Conta
-        </button>
-        {mensagem && <p style={styles.message}>{mensagem}</p>}
       </div>
     </div>
   );
@@ -84,7 +80,7 @@ const styles = {
   button: {
     width: '100%',
     padding: 12,
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#673AB7',
     color: 'white',
     border: 'none',
     borderRadius: 5,
@@ -92,22 +88,6 @@ const styles = {
     cursor: 'pointer',
     marginTop: 10,
   },
-  linkButton: {
-    width: '100%',
-    padding: 10,
-    backgroundColor: '#2196F3',
-    color: 'white',
-    border: 'none',
-    borderRadius: 5,
-    fontSize: 14,
-    cursor: 'pointer',
-    marginTop: 10,
-  },
-  message: {
-    marginTop: 15,
-    textAlign: 'center',
-    color: '#666',
-  },
 };
 
-export default Login;
+export default Register;
