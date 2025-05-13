@@ -1,8 +1,17 @@
 from fastapi import FastAPI, HTTPException
 from src.schemas.user import UserCreate 
 from typing import List
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],  # ou ["*"] durante desenvolvimento
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app_db = []
 

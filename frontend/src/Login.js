@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 function Login() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [mensagem, setMensagem] = useState('');
@@ -21,7 +23,7 @@ function Login() {
   return (
     <div style={styles.container}>
       <div style={styles.card}>
-        <h2 style={styles.title}>Login</h2>
+        <h2 style={styles.title}>Bem Vindo ao m-GYM</h2>
         <form onSubmit={handleLogin}>
           <input
             type="email"
@@ -41,6 +43,9 @@ function Login() {
           />
           <button type="submit" style={styles.button}>Entrar</button>
         </form>
+        <button onClick={() => navigate('/cadastro')} style={styles.linkButton}>
+          Criar Conta
+        </button>
         {mensagem && <p style={styles.message}>{mensagem}</p>}
       </div>
     </div>
@@ -84,6 +89,17 @@ const styles = {
     border: 'none',
     borderRadius: 5,
     fontSize: 16,
+    cursor: 'pointer',
+    marginTop: 10,
+  },
+  linkButton: {
+    width: '100%',
+    padding: 10,
+    backgroundColor: '#2196F3',
+    color: 'white',
+    border: 'none',
+    borderRadius: 5,
+    fontSize: 14,
     cursor: 'pointer',
     marginTop: 10,
   },
