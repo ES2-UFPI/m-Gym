@@ -8,17 +8,27 @@ function Login() {
   const [mensagem, setMensagem] = useState('');
 
   const handleLogin = async (e) => {
-    e.preventDefault();
-
-    const response = await fetch('http://localhost:3001/login', {
+  e.preventDefault();
+  try {
+    const response = await fetch('http://localhost:8000/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
     });
 
     const data = await response.json();
-    setMensagem(data.message);
-  };
+
+    if (!response.ok) {
+      setMensagem(data.detail || 'Erro no login');
+      return;
+    }
+    localStorage.setItem("usuario", JSON.stringify(data.usuario));
+    
+    navigate('/inicio');
+  } catch (error) {
+    setMensagem("Erro ao conectar com o servidor.");
+  }
+};
 
   return (
     <div style={styles.container}>
