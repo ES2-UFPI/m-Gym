@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends, Body
 from sqlalchemy.orm import Session
 from src.schemas.user import UserCreate
 from src.models.user import User
@@ -34,3 +34,15 @@ def criar_usuario(user: UserCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(novo_usuario)
     return {"message": "Usuário criado com sucesso!", "usuario": novo_usuario}
+
+@app.post("/login")
+def login(data: dict = Body(...), db: Session = Depends(get_db)):
+    email = data.get("email")
+    password = data.get("password")
+
+    user = db.query(User).filter(User.email == email).first()
+
+    if not user or user.password != password:
+        raise HTTPException(status_code=401, detail="Credenciais inválidas.")
+
+    return {"message": "Login bem-sucedido!", "usuario": {"id": user.id, "login": user.login, "email": user.email}}
