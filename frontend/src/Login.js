@@ -19,11 +19,17 @@ function Login() {
     const data = await response.json();
 
     if (!response.ok) {
-      setMensagem(data.detail || 'Erro no login');
+      if (Array.isArray(data.detail)) {
+        // Concatena as mensagens de erro do FastAPI
+        const mensagensErro = data.detail.map((err) => err.msg).join(', ');
+        setMensagem(mensagensErro);
+      } else {
+        setMensagem(data.detail || 'Erro no login');
+      }
       return;
     }
+
     localStorage.setItem("usuario", JSON.stringify(data.usuario));
-    
     navigate('/inicio');
   } catch (error) {
     setMensagem("Erro ao conectar com o servidor.");
