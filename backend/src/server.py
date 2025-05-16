@@ -34,13 +34,17 @@ def criar_usuario(user: UserCreate, db: Session = Depends(get_db)):
     return {"message": "Usuário criado com sucesso!", "usuario": novo_usuario}
 
 @app.post("/login")
-def login(email: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
-    user = authenticate_user(db, email, password)
-    if not user:
+def login(user: UserLogin, db: Session = Depends(get_db)):
+    user_autenticado = authenticate_user(db, user.email, user.password)
+    if not user_autenticado:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Credenciais inválidas")
 
-    token = create_access_token({"sub": user.email})
-    return {"access_token": token, "token_type": "bearer"}
+    token = create_access_token({"sub": user_autenticado.email})
+    return {
+        "access_token": token,
+        "token_type": "bearer",
+        "usuario": user_autenticado  
+    }
 
 @app.get("/perfil")
 def perfil(usuario=Depends(get_current_user)):
