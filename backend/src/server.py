@@ -4,7 +4,7 @@ from src.schemas.user import UserCreate, UserLogin
 from src.models.user import User
 from src.database import get_db
 from fastapi.middleware.cors import CORSMiddleware
-from src.auth import authenticate_user, create_access_token, get_password_hash
+from src.auth import authenticate_user, create_access_token, get_password_hash, get_current_user
 
 app = FastAPI()
 
@@ -41,3 +41,7 @@ def login(email: str = Form(...), password: str = Form(...), db: Session = Depen
 
     token = create_access_token({"sub": user.email})
     return {"access_token": token, "token_type": "bearer"}
+
+@app.get("/perfil")
+def perfil(usuario=Depends(get_current_user)):
+    return {"usuario": usuario.login, "email": usuario.email}
