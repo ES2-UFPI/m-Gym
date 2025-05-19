@@ -1,10 +1,12 @@
 import React, { useState, useRef, useEffect } from "react";
 
 function Inicio() {
-  const usuario = JSON.parse(localStorage.getItem("usuario")) || {
+  const [usuario, setUsuario] = useState({
     login: "User",
     email: "user@email.com",
-  };
+    foto: null,
+    bio: "",
+  });
 
   const ranking = [
     { nome: "Usuário 1", pontos: 220 },
@@ -16,20 +18,52 @@ function Inicio() {
   const [menuAberto, setMenuAberto] = useState(false);
   const menuRef = useRef(null);
 
-  const handleClickFora = (e) => {
-    if (menuRef.current && !menuRef.current.contains(e.target)) {
-      setMenuAberto(false);
-    }
-  };
-
   useEffect(() => {
-    document.addEventListener("mousedown", handleClickFora);
-    return () => document.removeEventListener("mousedown", handleClickFora);
+    const carregarUsuario = async () => {
+      const token = localStorage.getItem("access_token");
+      console.log("Token:", token);
+
+      if (!token) return;
+
+      try {
+        const response = await fetch("http://localhost:8000/perfil", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          const usuarioData = {
+            login: data.usuario,
+            email: data.email,
+            foto: null,
+            bio: "", 
+          };
+  localStorage.setItem("usuario", JSON.stringify(usuarioData));
+  setUsuario(usuarioData);
+  console.log("Usuário definido:", usuarioData);
+}
+      } catch (error) {
+        console.error("Erro ao carregar usuário:", error);
+      }
+    };
+
+    carregarUsuario();
+
+    const listener = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setMenuAberto(false);
+      }
+    };
+
+    document.addEventListener("mousedown", listener);
+    return () => document.removeEventListener("mousedown", listener);
   }, []);
 
   const sair = () => {
     localStorage.clear();
-    window.location.href = "/Login";
+    window.location.href = "/";
   };
 
   return (
@@ -48,32 +82,46 @@ function Inicio() {
 
       {/* Conteúdo principal */}
       <main style={styles.main}>
-        {/* Cabeçalho com menu */}
         <header style={styles.header}>
           <div>
             <h1>Olá, {usuario.login}</h1>
             <p>Bem-vindo ao seu dashboard. Veja seu progresso e desafios ativos.</p>
           </div>
 
-          <div style={styles.userMenuContainer} ref={menuRef}>
-            <button onClick={() => setMenuAberto(!menuAberto)} style={styles.avatarButton}>
-              {usuario.login.charAt(0)}
-            </button>
-
-            {menuAberto && (
-              <div style={styles.dropdown}>
-                <strong style={styles.dropdownTitle}>Minha Conta</strong>
-                <div style={styles.dropdownItem} onClick={() => alert("Ir para perfil")}>
-                  👤 Perfil
-                </div>
-                <div style={styles.dropdownItem} onClick={() => window.location.href = "/Configuracoes"}>
-                ⚙️ Configurações
-                </div>
-                <div style={styles.dropdownItem} onClick={sair}>
-                  ↩️ Sair
-                </div>
+          <div style={styles.perfilContainer}>
+            {usuario.photo ? (
+              <img
+                src={`data:image/jpeg;base64,${usuario.photo}`}
+                alt="Foto de Perfil"
+                style={styles.fotoPerfil}
+              />
+            ) : (
+              <div style={styles.avatarFallback}>
+                {usuario.login.charAt(0)}
               </div>
             )}
+            <p style={styles.bio}>{usuario.bio}</p>
+
+            <div style={styles.userMenuContainer} ref={menuRef}>
+              <button onClick={() => setMenuAberto(!menuAberto)} style={styles.avatarButton}>
+                ☰
+              </button>
+
+              {menuAberto && (
+                <div style={styles.dropdown}>
+                  <strong style={styles.dropdownTitle}>Minha Conta</strong>
+                  <div style={styles.dropdownItem} onClick={() => window.location.href = "/editar"}>
+                    👤 Perfil
+                  </div>
+                  <div style={styles.dropdownItem} onClick={() => window.location.href = "/Configuracoes"}>
+                    ⚙️ Configurações
+                  </div>
+                  <div style={styles.dropdownItem} onClick={sair}>
+                    ↩️ Sair
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </header>
 
@@ -162,21 +210,50 @@ const styles = {
     alignItems: "center",
     marginBottom: 30,
   },
+  perfilContainer: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: 6,
+  },
+  fotoPerfil: {
+    width: 50,
+    height: 50,
+    borderRadius: "50%",
+    objectFit: "cover",
+    border: "2px solid #e53935",
+  },
+  avatarFallback: {
+    width: 50,
+    height: 50,
+    borderRadius: "50%",
+    background: "#eee",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontWeight: "bold",
+  },
+  bio: {
+    fontSize: 12,
+    maxWidth: 120,
+    textAlign: "center",
+    color: "#555",
+  },
   userMenuContainer: {
     position: "relative",
+    marginTop: 8,
   },
   avatarButton: {
-    background: "#eee",
-    borderRadius: "50%",
+    background: "#e53935",
+    borderRadius: 6,
+    color: "#fff",
     border: "none",
-    width: 40,
-    height: 40,
-    fontWeight: "bold",
+    padding: "4px 10px",
     cursor: "pointer",
   },
   dropdown: {
     position: "absolute",
-    top: 50,
+    top: 40,
     right: 0,
     background: "#fff",
     border: "1px solid #ccc",
