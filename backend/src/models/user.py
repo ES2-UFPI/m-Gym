@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String, LargeBinary
+from sqlalchemy.orm import relationship
 from src.database import Base
 
 class User(Base):
@@ -10,3 +11,4 @@ class User(Base):
     password = Column(String(255), nullable=False)
     photo = Column(LargeBinary, nullable=True)
     bio = Column(String(255), nullable=True)
+    profile = relationship("Profile", uselist=False, back_populates="user")
