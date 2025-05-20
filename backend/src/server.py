@@ -1,10 +1,11 @@
 from fastapi import FastAPI, HTTPException, Depends, Body, Form, status
 from sqlalchemy.orm import Session
-from src.schemas.user import UserCreate, UserLogin
+from src.schemas.user import UserCreate, UserLogin, PerfilUpdate
 from src.models.user import User
 from src.database import get_db
 from fastapi.middleware.cors import CORSMiddleware
 from src.auth import authenticate_user, create_access_token, get_password_hash, get_current_user
+import base64
 
 app = FastAPI()
 
@@ -48,4 +49,30 @@ def login(user: UserLogin, db: Session = Depends(get_db)):
 
 @app.get("/perfil")
 def perfil(usuario=Depends(get_current_user)):
-    return {"usuario": usuario.login, "email": usuario.email}
+    return {"usuario": usuario.login, "email": usuario.email, "photo": usuario.photo , "bio": usuario.bio}
+
+@app.put("/usuarios/perfil")
+def atualizar_perfil(perfil: PerfilUpdate, 
+                    usuario_logado: User = Depends(get_current_user), 
+                    db: Session = Depends(get_db)):
+    usuario = db.query(User).filter(User.id == usuario_logado.id).first()
+    if not usuario:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+
+    if perfil.photo:
+        try:
+            usuario.photo = base64.b64decode(perfil.photo)
+        except Exception:
+            raise HTTPException(status_code=400, detail="Foto inválida")
+
+    if perfil.bio is not None:
+        usuario.bio = perfil.bio
+    
+    db.commit()
+    db.refresh(usuario)
+    return {"usuario": {
+        "login": usuario.login,
+        "email": usuario.email,
+        "photo": perfil.photo,  # retorna base64 para o frontend
+        "bio": usuario.bio
+    }}

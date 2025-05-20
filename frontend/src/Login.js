@@ -29,7 +29,11 @@ function Login() {
       return;
     }
 
+
+    localStorage.setItem("access_token", data.access_token);
+    
     localStorage.setItem("usuario", JSON.stringify(data.usuario));
+
     navigate('/inicio');
   } catch (error) {
     setMensagem("Erro ao conectar com o servidor.");
