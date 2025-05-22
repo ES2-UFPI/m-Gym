@@ -2,11 +2,12 @@ import React, { useState, useRef, useEffect } from "react";
 
 function Inicio() {
   const [usuario, setUsuario] = useState({
-    login: "User",
-    email: "user@email.com",
-    foto: null,
-    bio: "",
-  });
+  login: "User",
+  email: "user@email.com",
+  foto: null,
+  bio: "",
+  pontuacao: 0,
+});
 
   const ranking = [
     { nome: "Usuário 1", pontos: 220 },
@@ -35,11 +36,12 @@ function Inicio() {
         if (response.ok) {
           const data = await response.json();
           const usuarioData = {
-            login: data.usuario,
-            email: data.email,
-            foto: null,
-            bio: "", 
-          };
+          login: data.usuario,
+          email: data.email,
+          foto: null,  // Ajuste se vier base64
+          bio: data.bio,
+          pontuacao: data.pontuacao,  
+        };
   localStorage.setItem("usuario", JSON.stringify(usuarioData));
   setUsuario(usuarioData);
   console.log("Usuário definido:", usuarioData);
@@ -86,6 +88,7 @@ function Inicio() {
           <div>
             <h1>Olá, {usuario.login}</h1>
             <p>Bem-vindo ao seu dashboard. Veja seu progresso e desafios ativos.</p>
+            <p>Sua pontuação: <strong>{usuario.pontuacao} pts</strong></p>
           </div>
 
           <div style={styles.perfilContainer}>
@@ -135,7 +138,7 @@ function Inicio() {
             <p style={{ marginTop: 10 }}>
               <strong>Seu progresso</strong>
               <br />
-              <span style={{ color: "#e53935" }}>1250 / 220 pontos</span>
+              <span style={{ color: "#e53935" }}>{usuario.pontuacao} pts</span>
             </p>
             <div style={styles.progressBar}>
               <div style={{ ...styles.progressFill, width: "80%" }}></div>

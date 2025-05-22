@@ -74,7 +74,8 @@ def atualizar_perfil(perfil: PerfilUpdate,
         "login": usuario.login,
         "email": usuario.email,
         "photo": perfil.photo,  # retorna base64 para o frontend
-        "bio": usuario.bio
+        "bio": usuario.bio,
+        "pontuacao": usuario.pontuacao
     }}
 
 @app.post("/perfil")
@@ -100,5 +101,6 @@ def atualiza_perfil(perfil: PerfilUpdate,
         "login": usuario.login,
         "email": usuario.email,
         "photo": perfil.photo,  # retorna base64 para o frontend
-        "bio": usuario.bio
+        "bio": usuario.bio,
+        "pontuacao": usuario.pontuacao
     }}
