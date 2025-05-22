@@ -1,5 +1,4 @@
 from src.database import Base, engine
-from src.models.user import User
+from src.models import User, Profile
 
-# Cria as tabelas no banco de dados
 Base.metadata.create_all(bind=engine)
