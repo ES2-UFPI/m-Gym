@@ -5,6 +5,7 @@ function EditarPerfil() {
   const [bio, setBio] = useState("");
   const [foto, setFoto] = useState(null);
   const [preview, setPreview] = useState(null);
+  const [pontuacao, setPontuacao] = useState(0);
 
   useEffect(() => {
     const carregarPerfil = async () => {
@@ -21,6 +22,7 @@ function EditarPerfil() {
 
         const data = await response.json();
         setBio(data.bio || "");
+        setPontuacao(data.pontuacao || 0);
         if (data.photo) {
           setPreview(`data:image/jpeg;base64,${data.photo}`);
         }
@@ -45,7 +47,7 @@ function EditarPerfil() {
   const toBase64 = (file) =>
     new Promise((resolve, reject) => {
       const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result.split(",")[1]); // Remove "data:image/jpeg;base64,"
+      reader.onloadend = () => resolve(reader.result.split(",")[1]);
       reader.onerror = reject;
       reader.readAsDataURL(file);
     });
@@ -93,9 +95,34 @@ function EditarPerfil() {
         padding: 40,
         background: "#fff",
         borderRadius: 10,
+        position: "relative",
       }}
     >
-      <h2 style={{ marginBottom: 20 }}>Editar Perfil</h2>
+      {/* Cabeçalho com título e pontuação destacada */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: 30,
+        }}
+      >
+        <h2 style={{ margin: 0 }}>Editar Perfil</h2>
+        <div
+          style={{
+            backgroundColor: "#e53935",
+            color: "#fff",
+            padding: "10px 20px",
+            borderRadius: "12px",
+            fontWeight: "bold",
+            fontSize: "20px",
+            boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
+            transition: "transform 0.2s",
+          }}
+        >
+          Pontuação: {pontuacao}
+        </div>
+      </div>
 
       <div style={{ marginBottom: 20 }}>
         <label style={{ display: "block", marginBottom: 5 }}>Foto de perfil:</label>
