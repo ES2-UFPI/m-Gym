@@ -60,7 +60,7 @@ function EditarPerfil() {
         base64Image = await toBase64(foto);
       }
 
-      const response = await fetch("http://localhost:8000/usuarios/perfil", {
+      const response = await fetch("http://localhost:8000/perfil", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
