@@ -11,8 +11,7 @@ function EditarPerfil() {
     const carregarPerfil = async () => {
       try {
         const token = localStorage.getItem("access_token");
-
-        const response = await fetch("http://localhost:8000/perfil/", {
+        const response = await fetch("http://localhost:8000/perfil", {
           headers: {
             Authorization: `Bearer ${token}`,
           },

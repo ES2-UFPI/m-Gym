@@ -11,7 +11,7 @@ from fastapi.security import OAuth2PasswordBearer
 from src.database import decode_access_token
 
 # Chave secreta (em produção, coloque no .env)
-SECRET_KEY = "secreto_super_seguro"
+SECRET_KEY = "your_secret_key"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
