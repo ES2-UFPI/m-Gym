@@ -41,16 +41,38 @@ def login(user: UserLogin, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Credenciais inválidas")
 
     token = create_access_token({"sub": user_autenticado.email})
+
+    photo_base64 = (
+        base64.b64encode(user_autenticado.photo).decode('utf-8')
+        if user_autenticado.photo else None
+    )
+
     return {
         "access_token": token,
         "token_type": "bearer",
-        "usuario": user_autenticado,
-        "pontuacao": user_autenticado.pontuacao,
+        "usuario": {
+            "id": user_autenticado.id,
+            "login": user_autenticado.login,
+            "email": user_autenticado.email,
+            "bio": user_autenticado.bio,
+            "photo": photo_base64,
+            "pontuacao": user_autenticado.pontuacao,
+        }
     }
 
 @app.get("/perfil")
 def perfil(usuario=Depends(get_current_user)):
-    return {"usuario": usuario.login, "email": usuario.email, "photo": usuario.photo , "bio": usuario.bio, "pontuacao": usuario.pontuacao}
+    photo_base64 = (
+        base64.b64encode(usuario.photo).decode('utf-8')
+        if usuario.photo else None
+    )
+    return {
+        "usuario": usuario.login,
+        "email": usuario.email,
+        "photo": photo_base64,  
+        "bio": usuario.bio,
+        "pontuacao": usuario.pontuacao
+    }
 
 @app.put("/perfil")
 def atualiza_perfil(perfil: PerfilUpdate, 

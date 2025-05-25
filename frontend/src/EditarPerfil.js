@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 function EditarPerfil() {
   const usuario = JSON.parse(localStorage.getItem("usuario"));
@@ -6,6 +7,8 @@ function EditarPerfil() {
   const [foto, setFoto] = useState(null);
   const [preview, setPreview] = useState(null);
   const [pontuacao, setPontuacao] = useState(0);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     const carregarPerfil = async () => {
@@ -67,10 +70,9 @@ function EditarPerfil() {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          usuario_id: usuario.id,
-          bio: bio,
-          photo: base64Image,
-        }),
+        bio: bio,
+        photo: base64Image,
+      }),
       });
 
       if (!response.ok) {
@@ -80,6 +82,9 @@ function EditarPerfil() {
       const data = await response.json();
       alert("Perfil atualizado com sucesso!");
       localStorage.setItem("usuario", JSON.stringify(data.usuario));
+      setTimeout(() => {
+        navigate("/inicio"); 
+      }, 1000);
     } catch (error) {
       console.error("Erro ao atualizar perfil:", error);
       alert("Erro ao atualizar perfil");

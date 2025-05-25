@@ -4,7 +4,7 @@ function Inicio() {
   const [usuario, setUsuario] = useState({
   login: "User",
   email: "user@email.com",
-  foto: null,
+  photo: null,
   bio: "",
   pontuacao: 0,
 });
@@ -38,7 +38,7 @@ function Inicio() {
           const usuarioData = {
           login: data.usuario,
           email: data.email,
-          foto: null,  // Ajuste se vier base64
+          photo: data.photo,  
           bio: data.bio,
           pontuacao: data.pontuacao,  
         };
