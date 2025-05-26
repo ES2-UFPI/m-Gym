@@ -24,3 +24,10 @@ class UserResponse(BaseModel):
 class PerfilUpdate(BaseModel):
     bio: Optional[str] = None
     photo: Optional[str] = None 
+
+class AtualizaLoginRequest(BaseModel):
+    novo_login: str
+
+class AtualizaSenhaRequest(BaseModel):
+    senha_antiga: str
+    nova_senha: str =  Field(..., min_length=6, description="Senha do usuário, obrigatória e com no mínimo 6 caracteres.")

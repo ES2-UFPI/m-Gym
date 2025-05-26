@@ -1,130 +1,197 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from "react";
 
-function Configuracoes() {
-  const navigate = useNavigate();
-  const usuario = JSON.parse(localStorage.getItem("usuario")) || {
-    id: null,
-    name: "",
-    email: ""
-  };
+const Configuracoes = () => {
+  const [novoLogin, setNovoLogin] = useState("");
+  const [senhaAntiga, setSenhaAntiga] = useState("");
+  const [novaSenha, setNovaSenha] = useState("");
+  const [confirmarSenha, setConfirmarSenha] = useState("");
 
-  const [name, setName] = useState(usuario.name);
-  const [email, setEmail] = useState(usuario.email);
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [mensagem, setMensagem] = useState('');
-  const [excluindo, setExcluindo] = useState(false);
+  const token = localStorage.getItem("access_token");
 
-  const handleProfileSubmit = (e) => {
-    e.preventDefault();
-    // Atualiza apenas localmente (você pode adaptar para salvar no backend se quiser)
-    const atualizado = { ...usuario, name, email };
-    localStorage.setItem('usuario', JSON.stringify(atualizado));
-    setMensagem('Perfil atualizado com sucesso!');
-  };
-
-  const handlePasswordSubmit = (e) => {
-    e.preventDefault();
-    if (newPassword !== confirmPassword) {
-      setMensagem('As senhas não coincidem.');
+  const handleAtualizarLogin = async () => {
+    if (!novoLogin.trim()) {
+      alert("Por favor, insira um novo login.");
       return;
     }
 
-    // Aqui você poderia validar e enviar nova senha para o backend
-    setMensagem('Senha atualizada com sucesso!');
-    setCurrentPassword('');
-    setNewPassword('');
-    setConfirmPassword('');
+    try {
+      const response = await fetch("http://localhost:8000/usuarios/atualizar-login", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ novo_login: novoLogin }),
+      });
+
+      if (!response.ok) throw new Error("Erro ao atualizar login");
+
+      alert("Login atualizado com sucesso!");
+      setNovoLogin("");
+    } catch (error) {
+      console.error(error);
+      alert("Erro ao atualizar login.");
+    }
   };
 
-  const handleDeleteAccount = async () => {
-  const confirmar = window.confirm("Tem certeza que deseja excluir sua conta?");
-  if (!confirmar) return;
-
-  setExcluindo(true);
-
-  try {
-    const token = localStorage.getItem("token");
-
-    const response = await fetch(`http://localhost:8000/usuarios/${usuario.id}`, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`, 
-      }
-    });
-
-    if (!response.ok) {
-      const data = await response.json();
-      setMensagem(data.detail || 'Erro ao excluir a conta.');
-      setExcluindo(false);
+  const handleTrocarSenha = async () => {
+    if (!senhaAntiga || !novaSenha || !confirmarSenha) {
+      alert("Preencha todos os campos de senha.");
       return;
     }
 
-    setMensagem('Conta excluída com sucesso!');
-    localStorage.clear();
-    setTimeout(() => navigate("/"), 1500);
+    if (novaSenha !== confirmarSenha) {
+      alert("A nova senha e a confirmação não coincidem.");
+      return;
+    }
 
-  } catch (error) {
-    console.error("Erro ao excluir conta:", error);
-    setMensagem('Erro ao conectar com o servidor.');
-    setExcluindo(false);
-  }
-};
+    try {
+      const response = await fetch("http://localhost:8000/usuarios/atualizar-senha", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          senha_antiga: senhaAntiga,
+          nova_senha: novaSenha,
+        }),
+      });
 
+      if (!response.ok) throw new Error("Erro ao atualizar senha");
+
+      alert("Senha atualizada com sucesso!");
+      setSenhaAntiga("");
+      setNovaSenha("");
+      setConfirmarSenha("");
+    } catch (error) {
+      console.error(error);
+      alert("Erro ao atualizar senha.");
+    }
+  };
 
   return (
-    <div style={{ maxWidth: '600px', margin: '2rem auto', padding: '1rem' }}>
-      <h1>Configurações</h1>
-      <p>Gerencie suas configurações de conta e preferências.</p>
+    <div
+      style={{
+        maxWidth: 700,
+        margin: "0 auto",
+        padding: 40,
+        background: "#fff",
+        borderRadius: 10,
+        display: "flex",
+        gap: 20,
+        justifyContent: "center",
+      }}
+    >
+      {/* Card para atualizar login */}
+      <div
+        style={{
+          flex: 1,
+          background: "#f9f9f9",
+          padding: 20,
+          borderRadius: 10,
+          boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+        }}
+      >
+        <h2>Alterar Nome de Login</h2>
+        <input
+          type="text"
+          placeholder="Novo nome de login"
+          value={novoLogin}
+          onChange={(e) => setNovoLogin(e.target.value)}
+          style={{
+            width: "100%",
+            padding: 10,
+            marginTop: 10,
+            marginBottom: 20,
+            borderRadius: 6,
+            border: "1px solid #ccc",
+          }}
+        />
+        <button
+          onClick={handleAtualizarLogin}
+          style={{
+            backgroundColor: "#e53935",
+            color: "#fff",
+            padding: "10px 20px",
+            border: "none",
+            borderRadius: 6,
+            cursor: "pointer",
+            fontWeight: "bold",
+          }}
+        >
+          Atualizar Login
+        </button>
+      </div>
 
-      {mensagem && <p style={{ color: 'green' }}>{mensagem}</p>}
-
-      <hr />
-
-      <h2>Perfil</h2>
-      <form onSubmit={handleProfileSubmit}>
-        <div>
-          <label>Nome:</label><br />
-          <input value={name} onChange={e => setName(e.target.value)} required />
-        </div>
-        <div>
-          <label>Email:</label><br />
-          <input type="email" value={email} onChange={e => setEmail(e.target.value)} required />
-        </div>
-        <button type="submit">Salvar Alterações</button>
-      </form>
-
-      <hr />
-
-      <h2>Alterar Senha</h2>
-      <form onSubmit={handlePasswordSubmit}>
-        <div>
-          <label>Senha Atual:</label><br />
-          <input type="password" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} required />
-        </div>
-        <div>
-          <label>Nova Senha:</label><br />
-          <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} required />
-        </div>
-        <div>
-          <label>Confirmar Nova Senha:</label><br />
-          <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} required />
-        </div>
-        <button type="submit">Alterar Senha</button>
-      </form>
-
-      <hr />
-
-      <h2>Excluir Conta</h2>
-      <p style={{ color: 'red' }}>Ao excluir sua conta, todos os seus dados serão removidos. Esta ação é irreversível.</p>
-      <button onClick={handleDeleteAccount} style={{ backgroundColor: 'red', color: 'white' }}>
-        {excluindo ? "Excluindo..." : "Excluir Conta" }
-      </button>
+      {/* Card para trocar senha */}
+      <div
+        style={{
+          flex: 1,
+          background: "#f9f9f9",
+          padding: 20,
+          borderRadius: 10,
+          boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+        }}
+      >
+        <h2>Alterar Senha</h2>
+        <input
+          type="password"
+          placeholder="Senha atual"
+          value={senhaAntiga}
+          onChange={(e) => setSenhaAntiga(e.target.value)}
+          style={{
+            width: "100%",
+            padding: 10,
+            marginTop: 10,
+            borderRadius: 6,
+            border: "1px solid #ccc",
+          }}
+        />
+        <input
+          type="password"
+          placeholder="Nova senha"
+          value={novaSenha}
+          onChange={(e) => setNovaSenha(e.target.value)}
+          style={{
+            width: "100%",
+            padding: 10,
+            marginTop: 10,
+            borderRadius: 6,
+            border: "1px solid #ccc",
+          }}
+        />
+        <input
+          type="password"
+          placeholder="Confirmar nova senha"
+          value={confirmarSenha}
+          onChange={(e) => setConfirmarSenha(e.target.value)}
+          style={{
+            width: "100%",
+            padding: 10,
+            marginTop: 10,
+            marginBottom: 20,
+            borderRadius: 6,
+            border: "1px solid #ccc",
+          }}
+        />
+        <button
+          onClick={handleTrocarSenha}
+          style={{
+            backgroundColor: "#e53935",
+            color: "#fff",
+            padding: "10px 20px",
+            border: "none",
+            borderRadius: 6,
+            cursor: "pointer",
+            fontWeight: "bold",
+          }}
+        >
+          Atualizar Senha
+        </button>
+      </div>
     </div>
   );
-}
+};
 
 export default Configuracoes;
