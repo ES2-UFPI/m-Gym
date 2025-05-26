@@ -22,6 +22,5 @@ class UserResponse(BaseModel):
         orm_mode = True
 
 class PerfilUpdate(BaseModel):
-    usuario_id: int
     bio: Optional[str] = None
     photo: Optional[str] = None 

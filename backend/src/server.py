@@ -41,44 +41,40 @@ def login(user: UserLogin, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Credenciais inválidas")
 
     token = create_access_token({"sub": user_autenticado.email})
+
+    photo_base64 = (
+        base64.b64encode(user_autenticado.photo).decode('utf-8')
+        if user_autenticado.photo else None
+    )
+
     return {
         "access_token": token,
         "token_type": "bearer",
-        "usuario": user_autenticado  
+        "usuario": {
+            "id": user_autenticado.id,
+            "login": user_autenticado.login,
+            "email": user_autenticado.email,
+            "bio": user_autenticado.bio,
+            "photo": photo_base64,
+            "pontuacao": user_autenticado.pontuacao,
+        }
     }
 
 @app.get("/perfil")
 def perfil(usuario=Depends(get_current_user)):
-    return {"usuario": usuario.login, "email": usuario.email, "photo": usuario.photo , "bio": usuario.bio}
-
-@app.put("/usuarios/perfil")
-def atualizar_perfil(perfil: PerfilUpdate, 
-                    usuario_logado: User = Depends(get_current_user), 
-                    db: Session = Depends(get_db)):
-    usuario = db.query(User).filter(User.id == usuario_logado.id).first()
-    if not usuario:
-        raise HTTPException(status_code=404, detail="Usuário não encontrado")
-
-    if perfil.photo:
-        try:
-            usuario.photo = base64.b64decode(perfil.photo)
-        except Exception:
-            raise HTTPException(status_code=400, detail="Foto inválida")
-
-    if perfil.bio is not None:
-        usuario.bio = perfil.bio
-    
-    db.commit()
-    db.refresh(usuario)
-    return {"usuario": {
-        "login": usuario.login,
+    photo_base64 = (
+        base64.b64encode(usuario.photo).decode('utf-8')
+        if usuario.photo else None
+    )
+    return {
+        "usuario": usuario.login,
         "email": usuario.email,
-        "photo": perfil.photo,  # retorna base64 para o frontend
+        "photo": photo_base64,  
         "bio": usuario.bio,
         "pontuacao": usuario.pontuacao
-    }}
+    }
 
-@app.post("/perfil")
+@app.put("/perfil")
 def atualiza_perfil(perfil: PerfilUpdate, 
                   usuario_logado: User = Depends(get_current_user), 
                   db: Session = Depends(get_db)):
