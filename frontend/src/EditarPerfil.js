@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 function EditarPerfil() {
   const usuario = JSON.parse(localStorage.getItem("usuario"));
+  const [Login, setLogin] = useState(usuario ? usuario.login : "");
   const [bio, setBio] = useState("");
   const [foto, setFoto] = useState(null);
   const [preview, setPreview] = useState(null);
@@ -56,6 +57,14 @@ function EditarPerfil() {
 
   const handleSalvar = async () => {
     try {
+      if (bio.length > 255) {
+      alert("Bio muito longa, máximo de 255 caracteres.");
+      return;
+      }
+      if(Login.length > 25 && Login.length < 1){
+        alert("Login deve ter entre 1 e 25 caracteres.");
+        return;
+      }
       const token = localStorage.getItem("access_token");
 
       let base64Image = null;
@@ -78,7 +87,7 @@ function EditarPerfil() {
       if (!response.ok) {
         throw new Error("Erro na resposta do servidor");
       }
-
+      setLogin(Login);
       const data = await response.json();
       alert("Perfil atualizado com sucesso!");
       localStorage.setItem("usuario", JSON.stringify(data.usuario));
