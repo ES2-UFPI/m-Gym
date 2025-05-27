@@ -122,9 +122,10 @@ async def atualizar_senha(
     usuario_logado: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    if not usuario_logado.verify_password(dados.senha_antiga):
+    if not verify_password(dados.senha_antiga, usuario_logado.password):
         raise HTTPException(status_code=401, detail="Senha antiga incorreta.")
-
+    
+    # user = user.db.query(User).filter(User.id == usuario_logado.id)
     usuario_logado.password = get_password_hash(dados.nova_senha)
     db.add(usuario_logado)  
     db.commit()
