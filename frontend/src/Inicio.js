@@ -72,7 +72,7 @@ function Inicio() {
     <div style={{ display: "flex", height: "100vh", fontFamily: "sans-serif" }}>
       {/* Sidebar */}
       <aside style={styles.sidebar}>
-        <h2 style={styles.logo}>🏋️ GymRats</h2>
+        <h2 style={styles.logo}>🏋️ m-Gym</h2>
         <nav>
           <button style={{ ...styles.navItem, ...styles.active }}>Dashboard</button>
           <button style={styles.navItem}>Desafios</button>

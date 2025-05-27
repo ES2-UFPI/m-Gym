@@ -1,11 +1,13 @@
 from fastapi import FastAPI, HTTPException, Depends, Body, Form, status
 from sqlalchemy.orm import Session
-from src.schemas.user import UserCreate, UserLogin, PerfilUpdate
+from src.schemas.user import UserCreate, UserLogin, PerfilUpdate, AtualizaLoginRequest, AtualizaSenhaRequest
 from src.models.user import User
 from src.database import get_db
 from fastapi.middleware.cors import CORSMiddleware
-from src.auth import authenticate_user, create_access_token, get_password_hash, get_current_user
+from src.auth import authenticate_user, create_access_token, get_password_hash, get_current_user, verify_password
 import base64
+from pydantic import BaseModel
+from typing import Optional
 
 app = FastAPI()
 
@@ -100,3 +102,34 @@ def atualiza_perfil(perfil: PerfilUpdate,
         "bio": usuario.bio,
         "pontuacao": usuario.pontuacao
     }}
+
+@app.put("/usuarios/atualizar-login")
+def atualizar_login(
+    dados: AtualizaLoginRequest,
+    usuario_logado: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    if db.query(User).filter(User.login == dados.novo_login).first():
+        raise HTTPException(status_code=400, detail="Login já está em uso.")
+
+    usuario_logado.login = dados.novo_login
+    db.commit()
+    return {"message": "Login atualizado com sucesso."}
+
+@app.put("/usuarios/atualizar-senha")
+async def atualizar_senha(
+    dados: AtualizaSenhaRequest,
+    usuario_logado: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    if not verify_password(dados.senha_antiga, usuario_logado.password):
+        raise HTTPException(status_code=401, detail="Senha antiga incorreta.")
+    
+    # user = user.db.query(User).filter(User.id == usuario_logado.id)
+    usuario_logado.password = get_password_hash(dados.nova_senha)
+    db.add(usuario_logado)  
+    db.commit()
+    db.refresh(usuario_logado) 
+
+    return {"message": "Senha atualizada com sucesso."}
+
