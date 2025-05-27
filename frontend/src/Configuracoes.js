@@ -9,66 +9,91 @@ const Configuracoes = () => {
   const token = localStorage.getItem("access_token");
 
   const handleAtualizarLogin = async () => {
-    if (!novoLogin.trim()) {
-      alert("Por favor, insira um novo login.");
-      return;
-    }
+  if (!novoLogin.trim()) {
+    alert("Por favor, insira um novo login.");
+    return;
+  }
 
-    try {
-      const response = await fetch("http://localhost:8000/usuarios/atualizar-login", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ novo_login: novoLogin }),
-      });
+  try {
+    const response = await fetch("http://localhost:8000/usuarios/atualizar-login", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ novo_login: novoLogin }),
+    });
 
-      if (!response.ok) throw new Error("Erro ao atualizar login");
+    const data = await response.json();
 
-      alert("Login atualizado com sucesso!");
-      setNovoLogin("");
-    } catch (error) {
-      console.error(error);
-      alert("Erro ao atualizar login.");
-    }
-  };
+    if (!response.ok) {
+  let msg;
+  if (Array.isArray(data.detail)) {
+    msg = data.detail.map(err => `• ${err.msg}`).join("\n");
+  } else if (typeof data.detail === "object") {
+    msg = JSON.stringify(data.detail);
+  } else {
+    msg = data.detail;
+  }
+  throw new Error(msg || "Erro ao atualizar senha");
+}
+
+    alert("Login atualizado com sucesso!");
+    setNovoLogin("");
+  } catch (error) {
+    console.error(error);
+    alert(error.message || "Erro ao atualizar login.");
+  }
+};
 
   const handleTrocarSenha = async () => {
-    if (!senhaAntiga || !novaSenha || !confirmarSenha) {
-      alert("Preencha todos os campos de senha.");
-      return;
-    }
+  if (!senhaAntiga || !novaSenha || !confirmarSenha) {
+    alert("Preencha todos os campos de senha.");
+    return;
+  }
 
-    if (novaSenha !== confirmarSenha) {
-      alert("A nova senha e a confirmação não coincidem.");
-      return;
-    }
+  if (novaSenha !== confirmarSenha) {
+    alert("A nova senha e a confirmação não coincidem.");
+    return;
+  }
 
-    try {
-      const response = await fetch("http://localhost:8000/usuarios/atualizar-senha", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          senha_antiga: senhaAntiga,
-          nova_senha: novaSenha,
-        }),
-      });
+  try {
+    const response = await fetch("http://localhost:8000/usuarios/atualizar-senha", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        senha_antiga: senhaAntiga,
+        nova_senha: novaSenha,
+      }),
+    });
 
-      if (!response.ok) throw new Error("Erro ao atualizar senha");
+    const data = await response.json();
 
-      alert("Senha atualizada com sucesso!");
-      setSenhaAntiga("");
-      setNovaSenha("");
-      setConfirmarSenha("");
-    } catch (error) {
-      console.error(error);
-      alert("Erro ao atualizar senha.");
-    }
-  };
+   if (!response.ok) {
+  let msg;
+  if (Array.isArray(data.detail)) {
+    msg = data.detail.map(err => `• ${err.msg}`).join("\n");
+  } else if (typeof data.detail === "object") {
+    msg = JSON.stringify(data.detail);
+  } else {
+    msg = data.detail;
+  }
+  throw new Error(msg || "Erro ao atualizar senha");
+}
+
+    alert("Senha atualizada com sucesso!");
+    setSenhaAntiga("");
+    setNovaSenha("");
+    setConfirmarSenha("");
+  } catch (error) {
+    console.error(error);
+    alert(error.message || "Erro ao atualizar senha.");
+  }
+};
+
 
   return (
     <div
