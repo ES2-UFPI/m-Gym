@@ -27,7 +27,7 @@ function Inicio() {
       if (!token) return;
 
       try {
-        const response = await fetch("http://localhost:8000/perfil", {
+        const response = await fetch("https://mgymbackend.onrender.com/perfil", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
