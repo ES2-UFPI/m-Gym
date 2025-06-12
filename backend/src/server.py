@@ -17,7 +17,7 @@ app = FastAPI()
 # Configuração do CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:8000", "https://m-gym.onrender.com"],
+    allow_origins=["http://localhost:3000", "http://localhost:8000", "https://m-gym.onrender.com", "https://m-gym-frontend.onrender.com"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
