@@ -15,7 +15,7 @@ function EditarPerfil() {
     const carregarPerfil = async () => {
       try {
         const token = localStorage.getItem("access_token");
-        const response = await fetch("https://m-gym-ag38.onrender.com/perfil", {
+        const response = await fetch("https://mgymbackend.onrender.com/perfil", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -73,7 +73,7 @@ function EditarPerfil() {
       }
 
       // const response = await fetch("http://localhost:8000/perfil", {
-      const response = await fetch("https://m-gym-ag38.onrender.com/perfil", { 
+      const response = await fetch("https://mgymbackend.onrender.com/perfil", { 
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

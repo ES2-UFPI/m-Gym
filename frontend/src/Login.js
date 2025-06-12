@@ -10,7 +10,7 @@ function Login() {
   const handleLogin = async (e) => {
   e.preventDefault();
   try {
-    const response = await fetch('https://m-gym-ag38.onrender.com/login', {
+    const response = await fetch('https://mgymbackend.onrender.com/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),

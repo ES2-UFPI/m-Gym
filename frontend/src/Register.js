@@ -14,7 +14,7 @@ function Register() {
   setMensagem('');
 
   try {
-    const response = await fetch('https://m-gym-ag38.onrender.com/usuarios', {
+    const response = await fetch('https://mgymbackend.onrender.com/usuarios', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
