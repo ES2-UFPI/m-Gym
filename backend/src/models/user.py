@@ -14,3 +14,5 @@ class User(Base):
     pontuacao = Column(Integer, nullable=False, default=0)
 
     profile = relationship("Profile", uselist=False, back_populates="user")
+    challenges = relationship("Challenge", back_populates="creator")
+    completed_challenges = relationship("ChallengeCompletion", back_populates="user")
