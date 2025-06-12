@@ -1,7 +1,10 @@
+from datetime import date
 from fastapi import FastAPI, HTTPException, Depends, Body, Form, status
 from sqlalchemy.orm import Session
 from src.schemas.user import UserCreate, UserLogin, PerfilUpdate, AtualizaLoginRequest, AtualizaSenhaRequest
+from src.schemas.challenge import ChallengeCreate
 from src.models.user import User
+from src.models.challenge import Challenge
 from src.database import get_db
 from fastapi.middleware.cors import CORSMiddleware
 from src.auth import authenticate_user, create_access_token, get_password_hash, get_current_user, verify_password
@@ -14,7 +17,7 @@ app = FastAPI()
 # Configuração do CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:8000"],
+    allow_origins=["http://localhost:3000", "http://localhost:8000", "https://m-gym.onrender.com"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -133,3 +136,31 @@ async def atualizar_senha(
 
     return {"message": "Senha atualizada com sucesso."}
 
+@app.post("/desafios", status_code=201)
+def criar_desafio(
+    desafio: ChallengeCreate, 
+    usuario_logado: User = Depends(get_current_user), 
+    db: Session = Depends(get_db)
+):
+    if db.query(Challenge).filter(Challenge.title == desafio.title).first():
+        raise HTTPException(status_code=400, detail="Título do desafio já está em uso.")
+
+    novo_desafio = Challenge(
+        title = desafio.title,
+        description=desafio.description,
+        start_date=desafio.start_date,
+        end_date=desafio.end_date,
+        points=desafio.points,
+        creator_id=usuario_logado.id
+    )
+    if novo_desafio.start_date >= novo_desafio.end_date:
+        raise HTTPException(status_code=400, detail="A data de início deve ser anterior à data de término.")
+    if novo_desafio.points < 0:
+        raise HTTPException(status_code=400, detail="A quantidade de pontos deve ser um valor não negativo.")
+    if novo_desafio.start_date < date.today():
+        raise HTTPException(status_code=400, detail="A data de início não pode ser no passado.")
+    
+    db.add(novo_desafio)
+    db.commit()
+    db.refresh(novo_desafio)
+    return {"message": "Desafio criado com sucesso!", "desafio": novo_desafio}
