@@ -15,7 +15,7 @@ const Configuracoes = () => {
   }
 
   try {
-    const response = await fetch("http://localhost:8000/usuarios/atualizar-login", {
+    const response = await fetch("http://m-gym-ag38.onrender.com/usuarios/atualizar-login", {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -58,7 +58,7 @@ const Configuracoes = () => {
   }
 
   try {
-    const response = await fetch("http://localhost:8000/usuarios/atualizar-senha", {
+    const response = await fetch("http://m-gym-ag38.onrender.com/usuarios/atualizar-senha", {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
