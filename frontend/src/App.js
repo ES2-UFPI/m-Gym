@@ -5,7 +5,6 @@ import Register from './Register';
 import Inicio from './Inicio';
 import Configuracoes from './Configuracoes'; 
 import EditarPerfil from './EditarPerfil';
-import CreateChallenge from './CreateChallenge';
 
 function App() {
   return (
@@ -16,7 +15,6 @@ function App() {
         <Route path="/inicio" element={<Inicio />} />
         <Route path="/configuracoes" element={<Configuracoes />} /> 
         <Route path="/editar" element={<EditarPerfil/>}/>
-        <Route path="/criar-desafio" element={<CreateChallenge />} />
       </Routes>
     </Router>
   );
