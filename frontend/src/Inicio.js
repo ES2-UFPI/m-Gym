@@ -1,6 +1,9 @@
 import React, { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 function Inicio() {
+  const navigate = useNavigate();
+
   const [usuario, setUsuario] = useState({
   login: "User",
   email: "user@email.com",
@@ -75,7 +78,7 @@ function Inicio() {
         <h2 style={styles.logo}>🏋️ m-Gym</h2>
         <nav>
           <button style={{ ...styles.navItem, ...styles.active }}>Dashboard</button>
-          <button style={styles.navItem}>Desafios</button>
+          <button style={styles.navItem} onClick={() => navigate("/criar-desafio")}>Desafios</button>
           <button style={styles.navItem}>Treinos</button>
           <button style={styles.navItem}>Exercícios</button>
           <button style={styles.navItem}>Configurações</button>
