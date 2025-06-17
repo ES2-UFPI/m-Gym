@@ -15,7 +15,7 @@ function EditarPerfil() {
     const carregarPerfil = async () => {
       try {
         const token = localStorage.getItem("access_token");
-        const response = await fetch("http://localhost:8000/perfil", {
+        const response = await fetch(`${process.env.REACT_APP_API_URL}/perfil`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -72,7 +72,7 @@ function EditarPerfil() {
         base64Image = await toBase64(foto);
       }
 
-      const response = await fetch("http://localhost:8000/perfil", {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/perfil`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

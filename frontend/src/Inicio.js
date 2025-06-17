@@ -30,7 +30,7 @@ function Inicio() {
       if (!token) return;
 
       try {
-        const response = await fetch("http://localhost:8000/perfil", {
+        const response = await fetch(`${process.env.REACT_APP_API_URL}/perfil`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
