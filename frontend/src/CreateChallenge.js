@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
 
 function CreateChallenge() {
   const [form, setForm] = useState({
@@ -11,55 +10,58 @@ function CreateChallenge() {
   });
   const [mensagem, setMensagem] = useState("");
 
-  const navigate = useNavigate();
-
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setMensagem("");
-    const token = localStorage.getItem("access_token");
-    if (!token) {
-      setMensagem("Você precisa estar logado.");
+  const MAX_POINTS = 500;
+
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setMensagem("");
+
+  const pts = Number(form.points);
+  if (isNaN(pts) || pts < 1 || pts > MAX_POINTS) {
+    setMensagem(`Pontos deve ser um número entre 1 e ${MAX_POINTS}.`);
+    return;
+  }
+
+  // 2) resto da lógica de login/token…
+  const token = localStorage.getItem("access_token");
+  if (!token) {
+    setMensagem("Você precisa estar logado.");
+    return;
+  }
+
+  try {
+    const response = await fetch("http://localhost:8000/desafios", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        ...form,
+        points: pts
+      })
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      setMensagem(data.detail || "Erro ao criar desafio.");
       return;
     }
-    try {
-      const response = await fetch("http://localhost:8000/desafios", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          title: form.title,
-          description: form.description,
-          start_date: form.start_date,
-          end_date: form.end_date,
-          points: Number(form.points)
-        })
-      });
-      const data = await response.json();
-      if (!response.ok) {
-        setMensagem(data.detail || "Erro ao criar desafio.");
-        return;
-      }
-      setMensagem("Desafio criado com sucesso!");
-      setForm({
-        title: "",
-        description: "",
-        start_date: "",
-        end_date: "",
-        points: ""
-      });
-      setTimeout(() => {
-        navigate("/inicio");
-      }, 2000);
-    } catch (error) {
-      setMensagem("Erro ao conectar com o servidor.");
-    }
-  };
+    setMensagem("Desafio criado com sucesso!");
+    setForm({
+      title: "",
+      description: "",
+      start_date: "",
+      end_date: "",
+      points: ""
+    });
+  } catch (error) {
+    setMensagem("Erro ao conectar com o servidor.");
+  }
+};
 
   return (
     <div style={{
@@ -115,7 +117,7 @@ function CreateChallenge() {
             style={{ width: "100%", marginBottom: 10, padding: 8, borderRadius: 5, border: "1px solid #ccc" }}
           />
         </div>
-        <div>
+                <div>
           <label>Pontos*</label>
           <input
             type="number"
@@ -123,7 +125,8 @@ function CreateChallenge() {
             value={form.points}
             onChange={handleChange}
             required
-            min={0}
+            min={1}
+            max={500}
             style={{ width: "100%", marginBottom: 16, padding: 8, borderRadius: 5, border: "1px solid #ccc" }}
           />
         </div>
