@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 function CreateChallenge() {
   const [form, setForm] = useState({
@@ -9,6 +10,8 @@ function CreateChallenge() {
     points: ""
   });
   const [mensagem, setMensagem] = useState("");
+
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -50,6 +53,9 @@ function CreateChallenge() {
         end_date: "",
         points: ""
       });
+      setTimeout(() => {
+        navigate("/inicio");
+      }, 2000);
     } catch (error) {
       setMensagem("Erro ao conectar com o servidor.");
     }
