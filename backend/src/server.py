@@ -2,7 +2,7 @@ from datetime import date
 from fastapi import FastAPI, HTTPException, Depends, Body, Form, status
 from sqlalchemy.orm import Session
 from src.schemas.user import UserCreate, UserLogin, PerfilUpdate, AtualizaLoginRequest, AtualizaSenhaRequest
-from src.schemas.challenge import ChallengeCreate
+from src.schemas.challenge import ChallengeCreate, ChallengeResponse
 from src.models.user import User
 from src.models.challenge import Challenge
 from src.database import get_db
@@ -11,6 +11,7 @@ from src.auth import authenticate_user, create_access_token, get_password_hash, 
 import base64
 from pydantic import BaseModel
 from typing import Optional
+import os
 
 app = FastAPI()
 
@@ -162,3 +163,11 @@ def criar_desafio(
     db.commit()
     db.refresh(novo_desafio)
     return {"message": "Desafio criado com sucesso!", "desafio": novo_desafio}
+
+@app.get("/desafios", response_model=list[ChallengeResponse])
+def listar_desafios(
+    usuario_logado: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    desafios = db.query(Challenge).all()
+    return desafios
