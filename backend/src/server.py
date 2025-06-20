@@ -3,6 +3,8 @@ from fastapi import FastAPI, HTTPException, Depends, Body, Form, status
 from sqlalchemy.orm import Session
 from src.schemas.user import UserCreate, UserLogin, PerfilUpdate, AtualizaLoginRequest, AtualizaSenhaRequest, UserPoints
 from src.schemas.challenge import ChallengeCreate, ChallengeResponse
+from src.schemas.activity import ActivityCreate, ActivityResponse
+from src.models.activity import Activity
 from src.models.user import User
 from src.models.challenge import Challenge
 from src.database import get_db
@@ -228,3 +230,27 @@ def registrar_participacao(challenge_id: int,
     db.commit()
 
     return {"message": "Participação registrada com sucesso!", "pontos_ganhos": desafio.points}
+
+
+@app.post("/atividades", response_model=ActivityResponse, status_code=201)
+def criar_atividade(
+    atividade: ActivityCreate,
+    usuario_logado: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    nova_atividade = Activity(
+        user_id=usuario_logado.id,
+        challenge_id=atividade.challenge_id,
+        content=atividade.content,
+        photo=base64.b64decode(atividade.photo) if atividade.photo else None,
+        comment=atividade.comment if atividade.comment else None
+    )
+    db.add(nova_atividade)
+    db.commit()
+    db.refresh(nova_atividade)
+    return nova_atividade
+
+@app.get("/atividades/{challenge_id}", response_model=list[ActivityResponse])
+def listar_atividades(challenge_id: int, db: Session = Depends(get_db)):
+    atividades = db.query(Activity).filter(Activity.challenge_id == challenge_id).all()
+    return atividades
