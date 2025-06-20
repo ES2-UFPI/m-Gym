@@ -34,7 +34,7 @@ const handleSubmit = async (e) => {
   }
 
   try {
-    const response = await fetch("http://localhost:8000/desafios", {
+    const response = await fetch(`${process.env.REACT_APP_API_URL}/desafios`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
