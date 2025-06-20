@@ -3,30 +3,23 @@ import { useNavigate } from "react-router-dom";
 
 function Inicio() {
   const navigate = useNavigate();
+  const menuRef = useRef(null);
+
+  const [abaAtiva, setAbaAtiva] = useState("dashboard");
+  const [rankingUsuarios, setRankingUsuarios] = useState([]);
+  const [desafios, setDesafios] = useState([]);
 
   const [usuario, setUsuario] = useState({
-  login: "User",
-  email: "user@email.com",
-  photo: null,
-  bio: "",
-  pontuacao: 0,
-});
-
-  const ranking = [
-    { nome: "Usuário 1", pontos: 220 },
-    { nome: "Usuário 2", pontos: 200 },
-    { nome: "Usuário 3", pontos: 190 },
-    { nome: "Usuário 4", pontos: 180 },
-  ];
-
-  const [menuAberto, setMenuAberto] = useState(false);
-  const menuRef = useRef(null);
+    login: "User",
+    email: "user@email.com",
+    photo: null,
+    bio: "",
+    pontuacao: 0,
+  });
 
   useEffect(() => {
     const carregarUsuario = async () => {
       const token = localStorage.getItem("access_token");
-      console.log("Token:", token);
-
       if (!token) return;
 
       try {
@@ -39,22 +32,36 @@ function Inicio() {
         if (response.ok) {
           const data = await response.json();
           const usuarioData = {
-          login: data.usuario,
-          email: data.email,
-          photo: data.photo,  
-          bio: data.bio,
-          pontuacao: data.pontuacao,  
-        };
-  localStorage.setItem("usuario", JSON.stringify(usuarioData));
-  setUsuario(usuarioData);
-  console.log("Usuário definido:", usuarioData);
-}
+            login: data.usuario,
+            email: data.email,
+            photo: data.photo,
+            bio: data.bio,
+            pontuacao: data.pontuacao,
+          };
+          localStorage.setItem("usuario", JSON.stringify(usuarioData));
+          setUsuario(usuarioData);
+        }
       } catch (error) {
         console.error("Erro ao carregar usuário:", error);
       }
     };
 
+    const carregarRanking = async () => {
+      try {
+        const response = await fetch(`${process.env.REACT_APP_API_URL}/usuarios/ranking`);
+        if (response.ok) {
+          const data = await response.json();
+          setRankingUsuarios(data);
+        } else {
+          console.error("Erro ao carregar ranking");
+        }
+      } catch (error) {
+        console.error("Erro ao buscar ranking:", error);
+      }
+    };
+
     carregarUsuario();
+    carregarRanking();
 
     const listener = (e) => {
       if (menuRef.current && !menuRef.current.contains(e.target)) {
@@ -65,6 +72,30 @@ function Inicio() {
     document.addEventListener("mousedown", listener);
     return () => document.removeEventListener("mousedown", listener);
   }, []);
+
+  const carregarDesafios = async () => {
+    const token = localStorage.getItem("access_token");
+    if (!token) return;
+
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/desafios`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setDesafios(data);
+      } else {
+        console.error("Erro ao carregar desafios");
+      }
+    } catch (error) {
+      console.error("Erro ao buscar desafios:", error);
+    }
+  };
+
+  const [menuAberto, setMenuAberto] = useState(false);
 
   const sair = () => {
     localStorage.clear();
@@ -77,11 +108,29 @@ function Inicio() {
       <aside style={styles.sidebar}>
         <h2 style={styles.logo}>🏋️ m-Gym</h2>
         <nav>
-          <button style={{ ...styles.navItem, ...styles.active }}>Dashboard</button>
-          <button style={styles.navItem} onClick={() => navigate("/criar-desafio")}>Desafios</button>
-          <button style={styles.navItem}>Treinos</button>
-          <button style={styles.navItem}>Exercícios</button>
-          <button style={styles.navItem}>Configurações</button>
+          <button
+            style={{ ...styles.navItem, ...(abaAtiva === "dashboard" ? styles.active : {}) }}
+            onClick={() => setAbaAtiva("dashboard")}
+          >
+            Dashboard
+          </button>
+
+          <button
+            style={{ ...styles.navItem, ...(abaAtiva === "desafios" ? styles.active : {}) }}
+            onClick={() => {
+              setAbaAtiva("desafios");
+              carregarDesafios();
+            }}
+          >
+            Listar Desafios
+          </button>
+
+          <button
+            style={{ ...styles.navItem, ...(abaAtiva === "treinos" ? styles.active : {}) }}
+            onClick={() => setAbaAtiva("treinos")}
+          >
+            Treinos
+          </button>
         </nav>
       </aside>
 
@@ -131,47 +180,123 @@ function Inicio() {
           </div>
         </header>
 
-        {/* Conteúdo do dashboard */}
-        <div style={styles.dashboard}>
-          <div style={styles.card}>
-            <h3>Desafio Atual</h3>
-            <p>2023-05-20 até 2023-05-27</p>
-            <strong>Desafio de Resistência</strong>
-            <p>Quem consegue fazer mais repetições de burpees em 5 minutos?</p>
-            <p style={{ marginTop: 10 }}>
-              <strong>Seu progresso</strong>
-              <br />
-              <span style={{ color: "#e53935" }}>{usuario.pontuacao} pts</span>
-            </p>
-            <div style={styles.progressBar}>
-              <div style={{ ...styles.progressFill, width: "80%" }}></div>
+        {/* Conteúdo dinâmico */}
+        {abaAtiva === "dashboard" && (
+          <div style={styles.dashboard}>
+            <div style={styles.card}>
+              <h3>Desafio Atual</h3>
+              <p>2023-05-20 até 2023-05-27</p>
+              <strong>Desafio de Resistência</strong>
+              <p>Quem consegue fazer mais repetições de burpees em 5 minutos?</p>
+              <p style={{ marginTop: 10 }}>
+                <strong>Seu progresso</strong><br />
+                <span style={{ color: "#e53935" }}>{usuario.pontuacao} pts</span>
+              </p>
+              <div style={styles.progressBar}>
+                <div style={{ ...styles.progressFill, width: "80%" }}></div>
+              </div>
             </div>
-          </div>
 
-          <div style={styles.card}>
-            <h3>Ranking do Desafio</h3>
-            {ranking.map((item, index) => (
-              <div
-                key={index}
+            <div style={{ display: "flex", flexDirection: "column", flex: 1, gap: 10 }}>
+              <button
+                onClick={() => navigate("/criar-desafio")}
                 style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  padding: "8px 0",
-                  backgroundColor:
-                    item.nome === usuario.login ? "#f0f0f0" : "transparent",
+                  alignSelf: "flex-start",
+                  backgroundColor: "#e53935",
+                  color: "#fff",
+                  border: "none",
                   borderRadius: 6,
-                  paddingLeft: 8,
-                  marginBottom: 4,
+                  padding: "8px 16px",
+                  cursor: "pointer",
+                  fontWeight: "bold",
                 }}
               >
-                <span>
-                  {index + 1}. {item.nome}
-                </span>
-                <strong>{item.pontos} pts</strong>
+                + Criar Desafio
+              </button>
+
+              <div style={styles.card}>
+                <h3>Ranking do Desafio</h3>
+                {rankingUsuarios.length === 0 ? (
+                  <p>Nenhum dado disponível.</p>
+                ) : (
+                  rankingUsuarios.map((item, index) => (
+                    <div
+                      key={index}
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        padding: "8px 0",
+                        backgroundColor: item.login === usuario.login ? "#f0f0f0" : "transparent",
+                        borderRadius: 6,
+                        paddingLeft: 8,
+                        marginBottom: 4,
+                      }}
+                    >
+                      <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+  {item.photo ? (
+    <img
+      src={`data:image/jpeg;base64,${item.photo}`}
+      alt="Foto"
+      style={{ width: 24, height: 24, borderRadius: "50%", objectFit: "cover" }}
+    />
+  ) : (
+    <div style={{
+      width: 24,
+      height: 24,
+      borderRadius: "50%",
+      background: "#eee",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      fontSize: 12,
+    }}>
+      {item.login.charAt(0)}
+    </div>
+  )}
+  {index + 1}. {item.login}
+</span>
+                      <strong>{item.points} pts</strong>
+                    </div>
+                  ))
+                )}
               </div>
-            ))}
+            </div>
           </div>
-        </div>
+        )}
+
+        {abaAtiva === "desafios" && (
+          <div style={styles.card}>
+            <h3>Desafios Ativos</h3>
+            {desafios.length === 0 ? (
+              <p>Nenhum desafio ativo no momento.</p>
+            ) : (
+              desafios.map((desafio) => (
+                <div
+                  key={desafio.id}
+                  style={{
+                    border: "1px solid #ccc",
+                    borderRadius: 8,
+                    padding: 10,
+                    marginBottom: 10,
+                    background: "#fff"
+                  }}
+                >
+                  <h4>{desafio.title}</h4>
+                  <p>{desafio.description}</p>
+                  <p><strong>Período:</strong> {desafio.start_date} até {desafio.end_date}</p>
+                  <p><strong>Pontos:</strong> {desafio.points} pts</p>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+
+        {abaAtiva === "treinos" && (
+          <div style={styles.card}>
+            <h3>Área de Treinos</h3>
+            <p>Em construção...</p>
+          </div>
+        )}
       </main>
     </div>
   );
