@@ -12,6 +12,10 @@ import base64
 from pydantic import BaseModel
 from typing import Optional
 import os
+from datetime import date
+from src.models.challengecompletion import ChallengeCompletion
+from src.models.challenge import Challenge
+from src.models.user import User
 
 app = FastAPI()
 
@@ -195,3 +199,32 @@ def listar_desafios(
     hoje = date.today()
     desafios = db.query(Challenge).filter(Challenge.start_date <= hoje, Challenge.end_date >= hoje).all()
     return desafios
+
+@app.post("/desafios/{challenge_id}/participar")
+def registrar_participacao(challenge_id: int,
+                            usuario_logado: User = Depends(get_current_user),
+                            db: Session = Depends(get_db)):
+
+    desafio = db.query(Challenge).filter(Challenge.id == challenge_id).first()
+    if not desafio:
+        raise HTTPException(status_code=404, detail="Desafio não encontrado")
+
+    participacao_existente = db.query(ChallengeCompletion).filter_by(
+        user_id=usuario_logado.id,
+        challenge_id=challenge_id
+    ).first()
+    if participacao_existente:
+        raise HTTPException(status_code=400, detail="Você já participou deste desafio")
+
+    nova_participacao = ChallengeCompletion(
+        user_id=usuario_logado.id,
+        challenge_id=challenge_id,
+        completed_at=date.today()
+    )
+    db.add(nova_participacao)
+
+    # Atualiza a pontuação do usuário
+    usuario_logado.pontuacao += desafio.points
+    db.commit()
+
+    return {"message": "Participação registrada com sucesso!", "pontos_ganhos": desafio.points}

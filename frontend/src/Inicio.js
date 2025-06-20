@@ -285,6 +285,49 @@ function Inicio() {
                   <p>{desafio.description}</p>
                   <p><strong>Período:</strong> {desafio.start_date} até {desafio.end_date}</p>
                   <p><strong>Pontos:</strong> {desafio.points} pts</p>
+                  <button
+                    style={{
+                      backgroundColor: "#4CAF50",
+                      color: "#fff",
+                      border: "none",
+                      borderRadius: 6,
+                      padding: "6px 14px",
+                      cursor: "pointer",
+                      marginTop: 8,
+                      fontWeight: "bold"
+                    }}
+                    onClick={async () => {
+                      const token = localStorage.getItem("access_token");
+                      if (!token) {
+                        alert("Você precisa estar logado.");
+                        return;
+                      }
+                      try {
+                        const response = await fetch(
+                          `${process.env.REACT_APP_API_URL}/desafios/${desafio.id}/participar`,
+                          {
+                            method: "POST",
+                            headers: {
+                              "Content-Type": "application/json",
+                              Authorization: `Bearer ${token}`,
+                            },
+                          }
+                        );
+                        const data = await response.json();
+                        if (!response.ok) {
+                          alert(data.detail || "Erro ao participar do desafio.");
+                        } else {
+                          alert(data.message || "Participação registrada com sucesso!");
+                          // Atualiza pontuação do usuário após participar
+                          window.location.reload();
+                        }
+                      } catch (error) {
+                        alert("Erro ao conectar com o servidor.");
+                      }
+                    }}
+                  >
+                    Participar
+                  </button>
                 </div>
               ))
             )}
