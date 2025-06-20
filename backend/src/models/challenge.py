@@ -15,3 +15,4 @@ class Challenge(Base):
     creator_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     creator = relationship("User", back_populates="challenges")
     completed_by = relationship("ChallengeCompletion", back_populates="challenge")
+    activities = relationship("Activity", back_populates="challenge")

@@ -16,3 +16,4 @@ class User(Base):
     profile = relationship("Profile", uselist=False, back_populates="user")
     challenges = relationship("Challenge", back_populates="creator")
     completed_challenges = relationship("ChallengeCompletion", back_populates="user")
+    activities = relationship("Activity", back_populates="user")
