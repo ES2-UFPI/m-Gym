@@ -31,3 +31,12 @@ class AtualizaLoginRequest(BaseModel):
 class AtualizaSenhaRequest(BaseModel):
     senha_antiga: str
     nova_senha: str =  Field(..., min_length=6, description="Senha do usuário, obrigatória e com no mínimo 6 caracteres.")
+
+class UserPoints(BaseModel):
+    login: str
+    email: EmailStr
+    photo: Optional[str] = None
+    points: int
+
+    class Config:
+        orm_mode = True

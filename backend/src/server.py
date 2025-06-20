@@ -1,7 +1,7 @@
 from datetime import date
 from fastapi import FastAPI, HTTPException, Depends, Body, Form, status
 from sqlalchemy.orm import Session
-from src.schemas.user import UserCreate, UserLogin, PerfilUpdate, AtualizaLoginRequest, AtualizaSenhaRequest
+from src.schemas.user import UserCreate, UserLogin, PerfilUpdate, AtualizaLoginRequest, AtualizaSenhaRequest, UserPoints
 from src.schemas.challenge import ChallengeCreate, ChallengeResponse
 from src.models.user import User
 from src.models.challenge import Challenge
@@ -170,4 +170,28 @@ def listar_desafios(
     db: Session = Depends(get_db)
 ):
     desafios = db.query(Challenge).all()
+    return desafios
+
+@app.get("/usuarios/ranking", response_model=list[UserPoints])
+def listar_ranking(db: Session = Depends(get_db)):
+    usuarios = db.query(User).order_by(User.pontuacao.desc()).all()
+    
+    ranking = []
+    for user in usuarios:
+        ranking.append(UserPoints(
+            login=user.login,
+            email=user.email,
+            photo=base64.b64encode(user.photo).decode('utf-8') if user.photo else None,
+            points=user.pontuacao
+        ))
+    
+    return ranking
+
+@app.get("/desafios-ativos", response_model=list[ChallengeResponse])
+def listar_desafios(
+    usuario_logado: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    hoje = date.today()
+    desafios = db.query(Challenge).filter(Challenge.start_date <= hoje, Challenge.end_date >= hoje).all()
     return desafios
