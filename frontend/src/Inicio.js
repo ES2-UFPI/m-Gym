@@ -215,7 +215,7 @@ function Inicio() {
               </button>
 
               <div style={styles.card}>
-                <h3>Ranking do Desafio</h3>
+                <h3>Ranking dos Usuários</h3>
                 {rankingUsuarios.length === 0 ? (
                   <p>Nenhum dado disponível.</p>
                 ) : (
