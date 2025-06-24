@@ -211,26 +211,34 @@ def registrar_participacao(challenge_id: int,
     if not desafio:
         raise HTTPException(status_code=404, detail="Desafio não encontrado")
 
+    # Bloqueia se já concluiu
+    ja_concluiu = db.query(ChallengeCompletion).filter_by(
+        user_id=usuario_logado.id,
+        challenge_id=challenge_id,
+        concluido=True
+    ).first()
+    if ja_concluiu:
+        raise HTTPException(status_code=400, detail="Você já concluiu este desafio anteriormente.")
+
+    # Bloqueia se já está inscrito
     participacao_existente = db.query(ChallengeCompletion).filter_by(
         user_id=usuario_logado.id,
-        challenge_id=challenge_id
+        challenge_id=challenge_id,
+        concluido=False
     ).first()
     if participacao_existente:
-        raise HTTPException(status_code=400, detail="Você já participou deste desafio")
+        raise HTTPException(status_code=400, detail="Você já está inscrito neste desafio.")
 
     nova_participacao = ChallengeCompletion(
         user_id=usuario_logado.id,
         challenge_id=challenge_id,
-        completed_at=date.today()
+        completed_at=date.today(),
+        concluido=False
     )
     db.add(nova_participacao)
-
-    # Atualiza a pontuação do usuário
-    usuario_logado.pontuacao += desafio.points
     db.commit()
 
-    return {"message": "Participação registrada com sucesso!", "pontos_ganhos": desafio.points}
-
+    return {"message": "Participação registrada com sucesso!"}
 
 @app.post("/atividades", response_model=ActivityResponse, status_code=201)
 def criar_atividade(
@@ -267,8 +275,10 @@ def meus_desafios(
     usuario_logado: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    # Busca os desafios em que o usuário participou
-    participacoes = db.query(ChallengeCompletion).filter_by(user_id=usuario_logado.id).all()
+    participacoes = db.query(ChallengeCompletion).filter_by(
+        user_id=usuario_logado.id,
+        concluido=False
+    ).all()
     desafios_ids = [p.challenge_id for p in participacoes]
     desafios = db.query(Challenge).filter(Challenge.id.in_(desafios_ids)).all()
     return desafios
@@ -280,3 +290,30 @@ def atividades_usuario(
 ):
     atividades = db.query(Activity).filter(Activity.user_id == usuario_logado.id).all()
     return atividades
+
+@app.post("/meus-desafios/{challenge_id}/concluir")
+def concluir_desafio(
+    challenge_id: int,
+    usuario_logado: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    participacao = db.query(ChallengeCompletion).filter_by(
+        user_id=usuario_logado.id,
+        challenge_id=challenge_id,
+        concluido=False
+    ).first()
+    if not participacao:
+        raise HTTPException(status_code=404, detail="Você não está inscrito neste desafio.")
+
+    desafio = db.query(Challenge).filter(Challenge.id == challenge_id).first()
+    if not desafio:
+        raise HTTPException(status_code=404, detail="Desafio não encontrado.")
+
+    # Adiciona pontos ao usuário
+    usuario_logado.pontuacao += desafio.points
+
+    # Marca como concluído (não deleta)
+    participacao.concluido = True
+    db.commit()
+
+    return {"message": "Desafio concluído! Pontos adicionados.", "pontos_ganhos": desafio.points}

@@ -292,6 +292,55 @@ function Inicio() {
                     <p>
                       <strong>Pontos:</strong> {desafio.points} pts
                     </p>
+                    <button
+                      style={{
+                        backgroundColor: "#4CAF50",
+                        color: "#fff",
+                        border: "none",
+                        borderRadius: 6,
+                        padding: "8px 16px",
+                        cursor: "pointer",
+                        fontWeight: "bold",
+                        marginTop: 8,
+                      }}
+                      onClick={async () => {
+                        const token = localStorage.getItem("access_token");
+                        if (!token) {
+                          alert("Você precisa estar logado.");
+                          return;
+                        }
+                        if (!window.confirm("Tem certeza que deseja marcar este desafio como concluído?")) return;
+                        try {
+                          const response = await fetch(
+                            `${process.env.REACT_APP_API_URL}/meus-desafios/${desafio.id}/concluir`,
+                            {
+                              method: "POST",
+                              headers: {
+                                "Content-Type": "application/json",
+                                Authorization: `Bearer ${token}`,
+                              },
+                            }
+                          );
+                          const data = await response.json();
+                          if (!response.ok) {
+                            alert(data.detail || "Erro ao concluir desafio.");
+                          } else {
+                            alert(data.message || "Desafio concluído!");
+                            // Remove o desafio da lista sem recarregar a página
+                            setMeusDesafios((prev) => prev.filter((d) => d.id !== desafio.id));
+                            // Atualiza a pontuação do usuário localmente
+                            setUsuario((u) => ({
+                              ...u,
+                              pontuacao: (u.pontuacao || 0) + desafio.points,
+                            }));
+                          }
+                        } catch (error) {
+                          alert("Erro ao conectar com o servidor.");
+                        }
+                      }}
+                    >
+                      Concluído
+                    </button>
                   </div>
                 ))
               )}
