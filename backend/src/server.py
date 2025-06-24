@@ -254,3 +254,14 @@ def criar_atividade(
 def listar_atividades(challenge_id: int, db: Session = Depends(get_db)):
     atividades = db.query(Activity).filter(Activity.challenge_id == challenge_id).all()
     return atividades
+
+@app.get("/meus-desafios", response_model=list[ChallengeResponse])
+def meus_desafios(
+    usuario_logado: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    # Busca os desafios em que o usuário participou
+    participacoes = db.query(ChallengeCompletion).filter_by(user_id=usuario_logado.id).all()
+    desafios_ids = [p.challenge_id for p in participacoes]
+    desafios = db.query(Challenge).filter(Challenge.id.in_(desafios_ids)).all()
+    return desafios
