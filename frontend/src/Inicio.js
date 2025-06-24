@@ -9,6 +9,8 @@ function Inicio() {
   const [rankingUsuarios, setRankingUsuarios] = useState([]);
   const [desafios, setDesafios] = useState([]);
   const [meusDesafios, setMeusDesafios] = useState([]);
+  const [arquivoImagem, setArquivoImagem] = useState(null);
+  
 
   const [usuario, setUsuario] = useState({
     login: "User",
@@ -144,11 +146,11 @@ function Inicio() {
           </button>
 
           <button
-            style={{ ...styles.navItem, ...(abaAtiva === "treinos" ? styles.active : {}) }}
-            onClick={() => setAbaAtiva("treinos")}
-          >
-            Treinos
-          </button>
+  style={{ ...styles.navItem, ...(abaAtiva === "Postar Atividade" ? styles.active : {}) }}
+  onClick={() => setAbaAtiva("Postar Atividade")}
+>
+  Postar Atividade
+</button>
         </nav>
       </aside>
 
@@ -368,12 +370,134 @@ function Inicio() {
           </div>
         )}
 
-        {abaAtiva === "treinos" && (
-          <div style={styles.card}>
-            <h3>Área de Treinos</h3>
-            <p>Em construção...</p>
-          </div>
-        )}
+       {abaAtiva === "Postar Atividade" && (
+  <div
+    style={{
+      maxWidth: 700,
+      margin: "0 auto",
+      padding: 40,
+      background: "#fff",
+      borderRadius: 10,
+      display: "flex",
+      justifyContent: "center",
+    }}
+  >
+    {/* Card único para postar atividade */}
+    <div
+      style={{
+        flex: 1,
+        background: "#f9f9f9",
+        padding: 20,
+        borderRadius: 10,
+        boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+      }}
+    >
+      <h2 style={{ marginBottom: 20 }}>Postar Atividade</h2>
+
+      <form
+        onSubmit={async (e) => {
+          e.preventDefault();
+          const token = localStorage.getItem("access_token");
+          if (!token) {
+            alert("Você precisa estar logado.");
+            return;
+          }
+          const formData = new FormData();
+          formData.append("challenge_id", e.target.challenge_id.value);
+          formData.append("content", e.target.content.value);
+          formData.append("comment", e.target.comment.value);
+          if (arquivoImagem) formData.append("photo", arquivoImagem);
+
+          try {
+            const res = await fetch(
+              `${process.env.REACT_APP_API_URL}/atividades`,
+              {
+                method: "POST",
+                headers: { Authorization: `Bearer ${token}` },
+                body: formData,
+              }
+            );
+            const data = await res.json();
+            if (!res.ok) {
+              alert(data.detail || "Erro ao postar atividade.");
+            } else {
+              alert("Atividade postada com sucesso!");
+              e.target.reset();
+              setArquivoImagem(null);
+            }
+          } catch (err) {
+            console.error(err);
+            alert("Erro na conexão.");
+          }
+        }}
+      >
+        <input
+          name="challenge_id"
+          type="number"
+          required
+          placeholder="ID do Desafio"
+          style={{
+            width: "100%",
+            padding: 10,
+            marginBottom: 20,
+            borderRadius: 6,
+            border: "1px solid #ccc",
+          }}
+        />
+
+        <textarea
+          name="content"
+          placeholder="Conteúdo da atividade"
+          maxLength={255}
+          style={{
+            width: "100%",
+            padding: 10,
+            marginBottom: 20,
+            borderRadius: 6,
+            border: "1px solid #ccc",
+            minHeight: 80,
+          }}
+        />
+
+        <textarea
+          name="comment"
+          placeholder="Comentário (opcional)"
+          maxLength={255}
+          style={{
+            width: "100%",
+            padding: 10,
+            marginBottom: 20,
+            borderRadius: 6,
+            border: "1px solid #ccc",
+            minHeight: 60,
+          }}
+        />
+
+        <input
+          type="file"
+          accept="image/jpeg"
+          onChange={(e) => setArquivoImagem(e.target.files[0])}
+          style={{ marginBottom: 20 }}
+        />
+
+        <button
+          type="submit"
+          style={{
+            backgroundColor: "#e53935",
+            color: "#fff",
+            padding: "10px 20px",
+            border: "none",
+            borderRadius: 6,
+            cursor: "pointer",
+            fontWeight: "bold",
+          }}
+        >
+          Postar Atividade
+        </button>
+      </form>
+    </div>
+  </div>
+)}
       </main>
     </div>
   );

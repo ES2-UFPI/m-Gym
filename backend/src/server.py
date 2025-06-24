@@ -1,5 +1,5 @@
 from datetime import date
-from fastapi import FastAPI, HTTPException, Depends, Body, Form, status
+from fastapi import FastAPI, HTTPException, Depends, Body, Form, status, File, UploadFile
 from sqlalchemy.orm import Session
 from src.schemas.user import UserCreate, UserLogin, PerfilUpdate, AtualizaLoginRequest, AtualizaSenhaRequest, UserPoints
 from src.schemas.challenge import ChallengeCreate, ChallengeResponse
@@ -234,16 +234,23 @@ def registrar_participacao(challenge_id: int,
 
 @app.post("/atividades", response_model=ActivityResponse, status_code=201)
 def criar_atividade(
-    atividade: ActivityCreate,
+    challenge_id: int = Form(...),
+    content: Optional[str] = Form(None),
+    comment: Optional[str] = Form(None),
+    photo: Optional[UploadFile] = File(None),
     usuario_logado: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    photo_data = None
+    if photo:
+        photo_data = base64.b64encode(photo.file.read())
+
     nova_atividade = Activity(
         user_id=usuario_logado.id,
-        challenge_id=atividade.challenge_id,
-        content=atividade.content,
-        photo=base64.b64decode(atividade.photo) if atividade.photo else None,
-        comment=atividade.comment if atividade.comment else None
+        challenge_id=challenge_id,
+        content=content,
+        photo=photo_data,
+        comment=comment
     )
     db.add(nova_atividade)
     db.commit()
