@@ -8,6 +8,7 @@ function Inicio() {
   const [abaAtiva, setAbaAtiva] = useState("dashboard");
   const [rankingUsuarios, setRankingUsuarios] = useState([]);
   const [desafios, setDesafios] = useState([]);
+  const [meusDesafios, setMeusDesafios] = useState([]);
 
   const [usuario, setUsuario] = useState({
     login: "User",
@@ -60,8 +61,25 @@ function Inicio() {
       }
     };
 
+    const carregarMeusDesafios = async () => {
+      const token = localStorage.getItem("access_token");
+      if (!token) return;
+      try {
+        const response = await fetch(`${process.env.REACT_APP_API_URL}/meus-desafios`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setMeusDesafios(data);
+        }
+      } catch (error) {
+        console.error("Erro ao buscar meus desafios:", error);
+      }
+    };
+
     carregarUsuario();
     carregarRanking();
+    carregarMeusDesafios();
 
     const listener = (e) => {
       if (menuRef.current && !menuRef.current.contains(e.target)) {
@@ -182,85 +200,101 @@ function Inicio() {
 
         {/* Conteúdo dinâmico */}
         {abaAtiva === "dashboard" && (
-          <div style={styles.dashboard}>
+          <div style={styles.dashboardRow}>
+            {/* Coluna 1: Ranking */}
             <div style={styles.card}>
-              <h3>Desafio Atual</h3>
-              <p>2023-05-20 até 2023-05-27</p>
-              <strong>Desafio de Resistência</strong>
-              <p>Quem consegue fazer mais repetições de burpees em 5 minutos?</p>
-              <p style={{ marginTop: 10 }}>
-                <strong>Seu progresso</strong><br />
-                <span style={{ color: "#e53935" }}>{usuario.pontuacao} pts</span>
-              </p>
-              <div style={styles.progressBar}>
-                <div style={{ ...styles.progressFill, width: "80%" }}></div>
-              </div>
+              <h3>Ranking dos Usuários</h3>
+              {rankingUsuarios.length === 0 ? (
+                <p>Nenhum dado disponível.</p>
+              ) : (
+                rankingUsuarios.map((item, index) => (
+                  <div
+                    key={index}
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      padding: "8px 0",
+                      backgroundColor: item.login === usuario.login ? "#f0f0f0" : "transparent",
+                      borderRadius: 6,
+                      paddingLeft: 8,
+                      marginBottom: 4,
+                    }}
+                  >
+                    <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      {item.photo ? (
+                        <img
+                          src={`data:image/jpeg;base64,${item.photo}`}
+                          alt="Foto"
+                          style={{ width: 24, height: 24, borderRadius: "50%", objectFit: "cover" }}
+                        />
+                      ) : (
+                        <div style={{
+                          width: 24,
+                          height: 24,
+                          borderRadius: "50%",
+                          background: "#eee",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontSize: 12,
+                        }}>
+                          {item.login.charAt(0)}
+                        </div>
+                      )}
+                      {index + 1}. {item.login}
+                    </span>
+                    <strong>{item.points} pts</strong>
+                  </div>
+                ))
+              )}
             </div>
-
-            <div style={{ display: "flex", flexDirection: "column", flex: 1, gap: 10 }}>
+            {/* Coluna 2: Botão Criar Desafio (agora acima) + Meus Desafios Inscritos */}
+            <div style={styles.card}>
               <button
                 onClick={() => navigate("/criar-desafio")}
                 style={{
-                  alignSelf: "flex-start",
                   backgroundColor: "#e53935",
                   color: "#fff",
                   border: "none",
                   borderRadius: 6,
-                  padding: "8px 16px",
+                  padding: "16px 24px",
                   cursor: "pointer",
                   fontWeight: "bold",
+                  fontSize: 18,
+                  marginBottom: 20,
+                  width: "100%",
                 }}
               >
                 + Criar Desafio
               </button>
-
-              <div style={styles.card}>
-                <h3>Ranking dos Usuários</h3>
-                {rankingUsuarios.length === 0 ? (
-                  <p>Nenhum dado disponível.</p>
-                ) : (
-                  rankingUsuarios.map((item, index) => (
-                    <div
-                      key={index}
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        padding: "8px 0",
-                        backgroundColor: item.login === usuario.login ? "#f0f0f0" : "transparent",
-                        borderRadius: 6,
-                        paddingLeft: 8,
-                        marginBottom: 4,
-                      }}
-                    >
-                      <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-  {item.photo ? (
-    <img
-      src={`data:image/jpeg;base64,${item.photo}`}
-      alt="Foto"
-      style={{ width: 24, height: 24, borderRadius: "50%", objectFit: "cover" }}
-    />
-  ) : (
-    <div style={{
-      width: 24,
-      height: 24,
-      borderRadius: "50%",
-      background: "#eee",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      fontSize: 12,
-    }}>
-      {item.login.charAt(0)}
-    </div>
-  )}
-  {index + 1}. {item.login}
-</span>
-                      <strong>{item.points} pts</strong>
-                    </div>
-                  ))
-                )}
-              </div>
+              <h3>Meus Desafios Inscritos</h3>
+              {meusDesafios.length === 0 ? (
+                <p>Você ainda não se inscreveu em nenhum desafio.</p>
+              ) : (
+                meusDesafios.map((desafio) => (
+                  <div
+                    key={desafio.id}
+                    style={{
+                      border: "1px solid #ccc",
+                      borderRadius: 8,
+                      padding: 10,
+                      marginBottom: 10,
+                      background: "#fafafa"
+                    }}
+                  >
+                    <h4>{desafio.title}</h4>
+                    <p>{desafio.description}</p>
+                    <p>
+                      <strong>Período:</strong> {desafio.start_date} até {desafio.end_date}
+                    </p>
+                    <p>
+                      <strong>Pontos:</strong> {desafio.points} pts
+                    </p>
+                  </div>
+                ))
+              )}
             </div>
+            {/* Coluna 3: (removida ou pode deixar vazia se quiser manter layout) */}
           </div>
         )}
 
@@ -447,9 +481,10 @@ const styles = {
     cursor: "pointer",
     fontSize: 14,
   },
-  dashboard: {
+  dashboardRow: {
     display: "flex",
     gap: 20,
+    alignItems: "flex-start",
   },
   card: {
     flex: 1,
