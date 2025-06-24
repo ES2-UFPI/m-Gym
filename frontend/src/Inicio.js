@@ -248,8 +248,25 @@ function Inicio() {
                 ))
               )}
             </div>
-            {/* Coluna 2: Meus Desafios Inscritos (agora no meio) */}
+            {/* Coluna 2: Botão Criar Desafio (agora acima) + Meus Desafios Inscritos */}
             <div style={styles.card}>
+              <button
+                onClick={() => navigate("/criar-desafio")}
+                style={{
+                  backgroundColor: "#e53935",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: 6,
+                  padding: "16px 24px",
+                  cursor: "pointer",
+                  fontWeight: "bold",
+                  fontSize: 18,
+                  marginBottom: 20,
+                  width: "100%",
+                }}
+              >
+                + Criar Desafio
+              </button>
               <h3>Meus Desafios Inscritos</h3>
               {meusDesafios.length === 0 ? (
                 <p>Você ainda não se inscreveu em nenhum desafio.</p>
@@ -277,24 +294,7 @@ function Inicio() {
                 ))
               )}
             </div>
-            {/* Coluna 3: Botão Criar Desafio (agora à direita) */}
-            <div style={{ ...styles.card, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minWidth: 180 }}>
-              <button
-                onClick={() => navigate("/criar-desafio")}
-                style={{
-                  backgroundColor: "#e53935",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: 6,
-                  padding: "16px 24px",
-                  cursor: "pointer",
-                  fontWeight: "bold",
-                  fontSize: 18,
-                }}
-              >
-                + Criar Desafio
-              </button>
-            </div>
+            {/* Coluna 3: (removida ou pode deixar vazia se quiser manter layout) */}
           </div>
         )}
 
