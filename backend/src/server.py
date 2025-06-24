@@ -265,3 +265,11 @@ def meus_desafios(
     desafios_ids = [p.challenge_id for p in participacoes]
     desafios = db.query(Challenge).filter(Challenge.id.in_(desafios_ids)).all()
     return desafios
+
+@app.get("/atividades-usuario", response_model=list[ActivityResponse])
+def atividades_usuario(
+    usuario_logado: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    atividades = db.query(Activity).filter(Activity.user_id == usuario_logado.id).all()
+    return atividades
