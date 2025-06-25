@@ -1,9 +1,10 @@
 from datetime import date
 from fastapi import FastAPI, HTTPException, Depends, Body, Form, status, File, UploadFile
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from src.schemas.user import UserCreate, UserLogin, PerfilUpdate, AtualizaLoginRequest, AtualizaSenhaRequest, UserPoints
 from src.schemas.challenge import ChallengeCreate, ChallengeResponse
 from src.schemas.activity import ActivityCreate, ActivityResponse
+from src.schemas.challengecomplete import ChallengeCompletionResponse, HistoricoResponse
 from src.models.activity import Activity
 from src.models.user import User
 from src.models.challenge import Challenge
@@ -265,10 +266,33 @@ def criar_atividade(
     db.refresh(nova_atividade)
     return nova_atividade
 
-@app.get("/atividades/{challenge_id}", response_model=list[ActivityResponse])
-def listar_atividades(challenge_id: int, db: Session = Depends(get_db)):
-    atividades = db.query(Activity).filter(Activity.challenge_id == challenge_id).all()
-    return atividades
+@app.get("/atividades-total")
+def listar_todas_atividades(db: Session = Depends(get_db)):
+    atividades = (
+        db.query(Activity)
+          .options(joinedload(Activity.user))
+          .order_by(Activity.created_at.desc())
+          .all()
+    )
+
+    retorno = []
+    for atividade in atividades:
+        retorno.append({
+            "id": atividade.id,
+            "user_id": atividade.user_id,
+            "challenge_id": atividade.challenge_id,
+            "content": atividade.content,
+            "comment": atividade.comment,
+            "created_at": atividade.created_at,
+            "photo": base64.b64encode(atividade.photo).decode('utf-8') if atividade.photo else None,
+            "user": {
+                "login": atividade.user.login,
+                "photo": base64.b64encode(atividade.user.photo).decode('utf-8') if atividade.user.photo else None
+            }
+        })
+
+    return retorno
+
 
 @app.get("/meus-desafios", response_model=list[ChallengeResponse])
 def meus_desafios(
@@ -317,3 +341,26 @@ def concluir_desafio(
     db.commit()
 
     return {"message": "Desafio concluído! Pontos adicionados.", "pontos_ganhos": desafio.points}
+
+@app.get("/historico", response_model=list[HistoricoResponse])
+def listar_historico_usuario(
+    usuario_logado: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    completions = (
+        db.query(ChallengeCompletion)
+          .filter_by(user_id=usuario_logado.id, concluido=True)
+          .all()
+    )
+
+    retorno = []
+    for c in completions:
+        retorno.append({
+            "challenge_id":  c.challenge_id,
+            "user_id":       c.user_id,
+            "completed_at":  c.completed_at,
+            "title":         c.challenge.title,
+            "description":   c.challenge.description,
+        })
+
+    return retorno

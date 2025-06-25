@@ -8,6 +8,10 @@ class ActivityCreate(BaseModel):
     photo: Optional[str] = Field(None, description="Foto da atividade (base64).")
     comment: Optional[str] = Field(None, max_length=255, description="Comentário em outra atividade.")
 
+class ActivityUser(BaseModel):
+    login: str
+    photo: Optional[str]
+
 class ActivityResponse(BaseModel):
     id: int
     user_id: int
@@ -16,6 +20,7 @@ class ActivityResponse(BaseModel):
     photo: Optional[str]
     comment: Optional[str]
     created_at: datetime
+    user: ActivityUser
 
     class Config:
         orm_mode = True
