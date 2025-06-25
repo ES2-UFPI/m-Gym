@@ -444,106 +444,128 @@ function Inicio() {
       <h2 style={{ marginBottom: 20 }}>Postar Atividade</h2>
 
       <form
-        onSubmit={async (e) => {
-          e.preventDefault();
-          const token = localStorage.getItem("access_token");
-          if (!token) {
-            alert("Você precisa estar logado.");
-            return;
-          }
-          const formData = new FormData();
-          formData.append("challenge_id", e.target.challenge_id.value);
-          formData.append("content", e.target.content.value);
-          formData.append("comment", e.target.comment.value);
-          if (arquivoImagem) formData.append("photo", arquivoImagem);
+  onSubmit={async (e) => {
+    e.preventDefault();
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      alert("Você precisa estar logado.");
+      return;
+    }
 
-          try {
-            const res = await fetch(
-              `${process.env.REACT_APP_API_URL}/atividades`,
-              {
-                method: "POST",
-                headers: { Authorization: `Bearer ${token}` },
-                body: formData,
-              }
-            );
-            const data = await res.json();
-            if (!res.ok) {
-              alert(data.detail || "Erro ao postar atividade.");
-            } else {
-              alert("Atividade postada com sucesso!");
-              e.target.reset();
-              setArquivoImagem(null);
-            }
-          } catch (err) {
-            console.error(err);
-            alert("Erro na conexão.");
-          }
-        }}
-      >
-        <input
-          name="challenge_id"
-          type="number"
-          required
-          placeholder="ID do Desafio"
-          style={{
-            width: "100%",
-            padding: 10,
-            marginBottom: 20,
-            borderRadius: 6,
-            border: "1px solid #ccc",
-          }}
-        />
+    // 1) Lê e valida o conteúdo
+    const valorConteudo = e.target.content.value.trim();
+    if (!valorConteudo) {
+      alert("O campo Conteúdo da Atividade é obrigatório.");
+      return;
+    }
 
-        <textarea
-          name="content"
-          placeholder="Conteúdo da atividade"
-          maxLength={255}
-          style={{
-            width: "100%",
-            padding: 10,
-            marginBottom: 20,
-            borderRadius: 6,
-            border: "1px solid #ccc",
-            minHeight: 80,
-          }}
-        />
+    // 2) Lê o challenge_id e confere se existe
+    const challengeId = Number(e.target.challenge_id.value);
+    if (isNaN(challengeId)) {
+      alert("ID do Desafio inválido.");
+      return;
+    }
+    try {
+      const respDesafios = await fetch(
+        `${process.env.REACT_APP_API_URL}/desafios`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      if (!respDesafios.ok) {
+        throw new Error("Falha ao verificar desafios");
+      }
+      const lista = await respDesafios.json();
+      if (!lista.some((d) => d.id === challengeId)) {
+        alert("Desafio não encontrado. Verifique o ID.");
+        return;
+      }
+    } catch {
+      alert("Erro ao verificar existência do desafio.");
+      return;
+    }
 
-        <textarea
-          name="comment"
-          placeholder="Comentário (opcional)"
-          maxLength={255}
-          style={{
-            width: "100%",
-            padding: 10,
-            marginBottom: 20,
-            borderRadius: 6,
-            border: "1px solid #ccc",
-            minHeight: 60,
-          }}
-        />
+    // 3) Prepara e envia a atividade
+    const formData = new FormData();
+    formData.append("challenge_id", challengeId);
+    formData.append("content", valorConteudo);
+    formData.append("comment", e.target.comment.value);
+    if (arquivoImagem) formData.append("photo", arquivoImagem);
 
-        <input
-          type="file"
-          accept="image/jpeg"
-          onChange={(e) => setArquivoImagem(e.target.files[0])}
-          style={{ marginBottom: 20 }}
-        />
+    try {
+      const res = await fetch(
+        `${process.env.REACT_APP_API_URL}/atividades`,
+        {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+          body: formData,
+        }
+      );
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.detail || "Erro ao postar atividade.");
+      } else {
+        alert("Atividade postada com sucesso!");
+        e.target.reset();
+        setArquivoImagem(null);
+      }
+    } catch {
+      alert("Erro na conexão.");
+    }
+  }}
+>
+  <div style={{ marginBottom: 20 }}>
+    <label>ID do Desafio:</label><br/>
+    <input
+      name="challenge_id"
+      type="number"
+      required
+      style={{ width: "100%", padding: 10, borderRadius: 6, border: "1px solid #ccc" }}
+    />
+  </div>
 
-        <button
-          type="submit"
-          style={{
-            backgroundColor: "#e53935",
-            color: "#fff",
-            padding: "10px 20px",
-            border: "none",
-            borderRadius: 6,
-            cursor: "pointer",
-            fontWeight: "bold",
-          }}
-        >
-          Postar Atividade
-        </button>
-      </form>
+  <div style={{ marginBottom: 20 }}>
+    <label>Conteúdo da Atividade:</label><br/>
+    <textarea
+      name="content"
+      required
+      maxLength={255}
+      style={{ width: "100%", padding: 10, borderRadius: 6, border: "1px solid #ccc", minHeight: 80 }}
+    />
+  </div>
+
+  <div style={{ marginBottom: 20 }}>
+    <label>Comentário (opcional):</label><br/>
+    <textarea
+      name="comment"
+      maxLength={255}
+      style={{ width: "100%", padding: 10, borderRadius: 6, border: "1px solid #ccc", minHeight: 60 }}
+    />
+  </div>
+
+  <div style={{ marginBottom: 20 }}>
+    <label>Foto (JPG, opcional):</label><br/>
+    <input
+      type="file"
+      accept="image/jpeg"
+      onChange={(e) => setArquivoImagem(e.target.files[0])}
+    />
+  </div>
+
+  <button
+    type="submit"
+    style={{
+      backgroundColor: "#e53935",
+      color: "#fff",
+      padding: "10px 20px",
+      border: "none",
+      borderRadius: 6,
+      cursor: "pointer",
+      fontWeight: "bold",
+    }}
+  >
+    Postar Atividade
+  </button>
+</form>
+
     </div>
   </div>
 )}
