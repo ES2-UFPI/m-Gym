@@ -10,6 +10,26 @@ function Inicio() {
   const [desafios, setDesafios] = useState([]);
   const [meusDesafios, setMeusDesafios] = useState([]);
   const [arquivoImagem, setArquivoImagem] = useState(null);
+  const [historico, setHistorico] = useState([]);
+
+   const carregarHistorico = async () => {
+    const token = localStorage.getItem("access_token");
+    if (!token) return;
+    try {
+      const resp = await fetch(
+        `${process.env.REACT_APP_API_URL}/historico`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      if (resp.ok) {
+        const data = await resp.json();
+        setHistorico(data);
+      } else {
+        console.error("Erro ao carregar histórico");
+      }
+    } catch (e) {
+      console.error("Erro ao buscar histórico:", e);
+    }
+  };
   
 
   const [usuario, setUsuario] = useState({
@@ -21,6 +41,8 @@ function Inicio() {
   });
 
   useEffect(() => {
+
+
     const carregarUsuario = async () => {
       const token = localStorage.getItem("access_token");
       if (!token) return;
@@ -126,33 +148,43 @@ function Inicio() {
     <div style={{ display: "flex", height: "100vh", fontFamily: "sans-serif" }}>
       {/* Sidebar */}
       <aside style={styles.sidebar}>
-        <h2 style={styles.logo}>🏋️ m-Gym</h2>
-        <nav>
-          <button
-            style={{ ...styles.navItem, ...(abaAtiva === "dashboard" ? styles.active : {}) }}
-            onClick={() => setAbaAtiva("dashboard")}
-          >
-            Dashboard
-          </button>
+  <h2 style={styles.logo}>🏋️ m-Gym</h2>
+  <nav>
+    <button
+      style={{ ...styles.navItem, ...(abaAtiva === "dashboard" ? styles.active : {}) }}
+      onClick={() => setAbaAtiva("dashboard")}
+    >
+      Dashboard
+    </button>
 
-          <button
-            style={{ ...styles.navItem, ...(abaAtiva === "desafios" ? styles.active : {}) }}
-            onClick={() => {
-              setAbaAtiva("desafios");
-              carregarDesafios();
-            }}
-          >
-            Listar Desafios
-          </button>
+    <button
+      style={{ ...styles.navItem, ...(abaAtiva === "desafios" ? styles.active : {}) }}
+      onClick={() => {
+        setAbaAtiva("desafios");
+        carregarDesafios();
+      }}
+    >
+      Listar Desafios
+    </button>
 
-          <button
-  style={{ ...styles.navItem, ...(abaAtiva === "Postar Atividade" ? styles.active : {}) }}
-  onClick={() => setAbaAtiva("Postar Atividade")}
->
-  Postar Atividade
-</button>
-        </nav>
-      </aside>
+    <button
+      style={{ ...styles.navItem, ...(abaAtiva === "historico" ? styles.active : {}) }}
+      onClick={() => {
+        setAbaAtiva("historico");
+        carregarHistorico();
+      }}
+    >
+      Histórico
+    </button>
+
+    <button
+      style={{ ...styles.navItem, ...(abaAtiva === "Postar Atividade" ? styles.active : {}) }}
+      onClick={() => setAbaAtiva("Postar Atividade")}
+    >
+      Postar Atividade
+    </button>
+  </nav>
+</aside>
 
       {/* Conteúdo principal */}
       <main style={styles.main}>
@@ -418,7 +450,25 @@ function Inicio() {
             )}
           </div>
         )}
-
+         {abaAtiva === "historico" && (
+  <div style={styles.card}>
+    <h3>Histórico de Desafios Concluídos</h3>
+    {historico.length === 0 ? (
+      <p>Nenhum desafio concluído ainda.</p>
+    ) : (
+      historico.map((c) => (
+        <div key={c.challenge_id} style={styles.desafioCard}>
+          <h4>{c.title}</h4>                       {/* antes: c.challenge.title */}
+          <p>{c.description}</p>                   {/* antes: c.challenge.description */}
+          <p>
+            <strong>Concluído em:</strong>{" "}
+            {new Date(c.completed_at).toLocaleDateString()}
+          </p>
+        </div>
+      ))
+    )}
+  </div>
+)}
        {abaAtiva === "Postar Atividade" && (
   <div
     style={{
@@ -580,6 +630,13 @@ const styles = {
     background: "#fff",
     borderRight: "1px solid #ddd",
     padding: 20,
+  },
+  desafioCard: {
+    border: "1px solid #ccc",
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 10,
+    background: "#fff",
   },
   logo: {
     fontSize: 22,

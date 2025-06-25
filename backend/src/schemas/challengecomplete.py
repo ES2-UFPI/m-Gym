@@ -13,3 +13,13 @@ class ChallengeCompletionResponse(BaseModel):
 
     class Config:
         orm_mode = True
+
+class HistoricoResponse(BaseModel):
+    challenge_id: int    
+    user_id: int           
+    completed_at: date    
+    title: str            
+    description: str      
+
+    class Config:
+        orm_mode = True

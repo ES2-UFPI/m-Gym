@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from src.schemas.user import UserCreate, UserLogin, PerfilUpdate, AtualizaLoginRequest, AtualizaSenhaRequest, UserPoints
 from src.schemas.challenge import ChallengeCreate, ChallengeResponse
 from src.schemas.activity import ActivityCreate, ActivityResponse
+from src.schemas.challengecomplete import ChallengeCompletionResponse, HistoricoResponse
 from src.models.activity import Activity
 from src.models.user import User
 from src.models.challenge import Challenge
@@ -317,3 +318,26 @@ def concluir_desafio(
     db.commit()
 
     return {"message": "Desafio concluído! Pontos adicionados.", "pontos_ganhos": desafio.points}
+
+@app.get("/historico", response_model=list[HistoricoResponse])
+def listar_historico_usuario(
+    usuario_logado: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    completions = (
+        db.query(ChallengeCompletion)
+          .filter_by(user_id=usuario_logado.id, concluido=True)
+          .all()
+    )
+
+    retorno = []
+    for c in completions:
+        retorno.append({
+            "challenge_id":  c.challenge_id,
+            "user_id":       c.user_id,
+            "completed_at":  c.completed_at,
+            "title":         c.challenge.title,
+            "description":   c.challenge.description,
+        })
+
+    return retorno
