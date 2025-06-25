@@ -1,6 +1,6 @@
 from datetime import date
 from fastapi import FastAPI, HTTPException, Depends, Body, Form, status, File, UploadFile
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from src.schemas.user import UserCreate, UserLogin, PerfilUpdate, AtualizaLoginRequest, AtualizaSenhaRequest, UserPoints
 from src.schemas.challenge import ChallengeCreate, ChallengeResponse
 from src.schemas.activity import ActivityCreate, ActivityResponse
@@ -266,10 +266,33 @@ def criar_atividade(
     db.refresh(nova_atividade)
     return nova_atividade
 
-@app.get("/atividades/{challenge_id}", response_model=list[ActivityResponse])
-def listar_atividades(challenge_id: int, db: Session = Depends(get_db)):
-    atividades = db.query(Activity).filter(Activity.challenge_id == challenge_id).all()
-    return atividades
+@app.get("/atividades-total")
+def listar_todas_atividades(db: Session = Depends(get_db)):
+    atividades = (
+        db.query(Activity)
+          .options(joinedload(Activity.user))
+          .order_by(Activity.created_at.desc())
+          .all()
+    )
+
+    retorno = []
+    for atividade in atividades:
+        retorno.append({
+            "id": atividade.id,
+            "user_id": atividade.user_id,
+            "challenge_id": atividade.challenge_id,
+            "content": atividade.content,
+            "comment": atividade.comment,
+            "created_at": atividade.created_at,
+            "photo": base64.b64encode(atividade.photo).decode('utf-8') if atividade.photo else None,
+            "user": {
+                "login": atividade.user.login,
+                "photo": base64.b64encode(atividade.user.photo).decode('utf-8') if atividade.user.photo else None
+            }
+        })
+
+    return retorno
+
 
 @app.get("/meus-desafios", response_model=list[ChallengeResponse])
 def meus_desafios(

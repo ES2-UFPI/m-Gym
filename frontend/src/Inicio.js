@@ -11,6 +11,7 @@ function Inicio() {
   const [meusDesafios, setMeusDesafios] = useState([]);
   const [arquivoImagem, setArquivoImagem] = useState(null);
   const [historico, setHistorico] = useState([]);
+  const [atividadesUsuarios, setAtividadesUsuarios] = useState([]);
 
    const carregarHistorico = async () => {
     const token = localStorage.getItem("access_token");
@@ -31,6 +32,24 @@ function Inicio() {
     }
   };
   
+  const carregarAtividadesUsuarios = async () => {
+  const token = localStorage.getItem("access_token");
+  if (!token) return;
+  try {
+    const resp = await fetch(
+      `${process.env.REACT_APP_API_URL}/atividades-total`, 
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    if (resp.ok) {
+      const data = await resp.json();
+      setAtividadesUsuarios(data);
+    } else {
+      console.error("Erro ao carregar atividades dos usuários");
+    }
+  } catch (e) {
+    console.error("Erro ao buscar atividades:", e);
+  }
+};
 
   const [usuario, setUsuario] = useState({
     login: "User",
@@ -183,6 +202,16 @@ function Inicio() {
     >
       Postar Atividade
     </button>
+
+    <button
+  style={{ ...styles.navItem, ...(abaAtiva === "atividades-usuarios" ? styles.active : {}) }}
+  onClick={() => {
+    setAbaAtiva("atividades-usuarios");
+    carregarAtividadesUsuarios(); 
+  }}
+>
+  Atividades dos Usuários
+</button>
   </nav>
 </aside>
 
@@ -619,6 +648,68 @@ function Inicio() {
     </div>
   </div>
 )}
+
+{abaAtiva === "atividades-usuarios" && (
+  <div style={styles.card}>
+    <h3>Atividades dos Usuários</h3>
+    {atividadesUsuarios.length === 0 ? (
+      <p>Nenhuma atividade publicada ainda.</p>
+    ) : (
+      atividadesUsuarios.map((act) => (
+        <div
+          key={act.id}
+          style={{
+            border: "1px solid #ccc",
+            borderRadius: 8,
+            padding: 10,
+            marginBottom: 10,
+            background: "#fff",
+          }}
+        >
+          <p style={{ display: "flex", alignItems: "center", gap: 8 }}>
+  {act.user.photo ? (
+    <img
+      src={`data:image/jpeg;base64,${act.user.photo}`}
+      alt={act.user.login}
+      style={{ width: 32, height: 32, borderRadius: "50%", objectFit: "cover" }}
+    />
+  ) : (
+    <div
+      style={{
+        width: 32,
+        height: 32,
+        borderRadius: "50%",
+        background: "#eee",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontWeight: "bold",
+      }}
+    >
+      {act.user.login.charAt(0)}
+    </div>
+  )}
+  <strong>{act.user.login}</strong>
+</p>
+          <p><strong>Conteúdo:</strong> {act.content || "—"}</p>
+          {act.photo && (
+            <img
+              src={`data:image/jpeg;base64,${act.photo}`}
+              alt="Foto da atividade"
+              style={{ maxWidth: "100%", borderRadius: 6, margin: "8px 0" }}
+            />
+          )}
+          {act.comment && <p><strong>Comentário:</strong> {act.comment}</p>}
+          <p>
+            <strong>Criado em:</strong>{" "}
+            {new Date(act.created_at).toLocaleString()}
+          </p>
+        </div>
+      ))
+    )}
+  </div>
+)}
+
       </main>
     </div>
   );
