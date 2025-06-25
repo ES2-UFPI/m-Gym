@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom"; // Adicione esta linha
 
 function CreateChallenge() {
   const [form, setForm] = useState({
@@ -9,6 +10,7 @@ function CreateChallenge() {
     points: ""
   });
   const [mensagem, setMensagem] = useState("");
+  const navigate = useNavigate(); // Adicione esta linha
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -16,52 +18,52 @@ function CreateChallenge() {
 
   const MAX_POINTS = 500;
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  setMensagem("");
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setMensagem("");
 
-  const pts = Number(form.points);
-  if (isNaN(pts) || pts < 1 || pts > MAX_POINTS) {
-    setMensagem(`Pontos deve ser um número entre 1 e ${MAX_POINTS}.`);
-    return;
-  }
-
-  // 2) resto da lógica de login/token…
-  const token = localStorage.getItem("access_token");
-  if (!token) {
-    setMensagem("Você precisa estar logado.");
-    return;
-  }
-
-  try {
-    const response = await fetch(`${process.env.REACT_APP_API_URL}/desafios`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`
-      },
-      body: JSON.stringify({
-        ...form,
-        points: pts
-      })
-    });
-    const data = await response.json();
-    if (!response.ok) {
-      setMensagem(data.detail || "Erro ao criar desafio.");
+    const pts = Number(form.points);
+    if (isNaN(pts) || pts < 1 || pts > MAX_POINTS) {
+      setMensagem(`Pontos deve ser um número entre 1 e ${MAX_POINTS}.`);
       return;
     }
-    setMensagem("Desafio criado com sucesso!");
-    setForm({
-      title: "",
-      description: "",
-      start_date: "",
-      end_date: "",
-      points: ""
-    });
-  } catch (error) {
-    setMensagem("Erro ao conectar com o servidor.");
-  }
-};
+
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      setMensagem("Você precisa estar logado.");
+      return;
+    }
+
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/desafios`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          ...form,
+          points: pts
+        })
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        setMensagem(data.detail || "Erro ao criar desafio.");
+        return;
+      }
+      setMensagem("Desafio criado com sucesso!");
+      setForm({
+        title: "",
+        description: "",
+        start_date: "",
+        end_date: "",
+        points: ""
+      });
+      setTimeout(() => navigate('/inicio'), 1200); // Redireciona após 1,2s
+    } catch (error) {
+      setMensagem("Erro ao conectar com o servidor.");
+    }
+  };
 
   return (
     <div style={{
