@@ -3,11 +3,11 @@ name: Publicar Frontend no GitHub Packages
 on:
   push:
     branches:
-      - dev        
+      - dev
 
 permissions:
   contents: read
-  packages: write  
+  packages: write
 
 jobs:
   publish-frontend:
@@ -22,7 +22,7 @@ jobs:
         with:
           node-version: '16.x'
           registry-url: 'https://npm.pkg.github.com'
-          scope: '@PedroFeitosaSoares' 
+          scope: '@PedroFeitosaSoares'
 
       - name: Instalar dependências
         run: npm ci
