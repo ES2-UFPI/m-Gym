@@ -1,0 +1,34 @@
+name: Publicar Frontend no GitHub Packages
+
+on:
+  push:
+    branches:
+      - dev        
+
+permissions:
+  contents: read
+  packages: write  
+
+jobs:
+  publish-frontend:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checar código
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '16.x'
+          registry-url: 'https://npm.pkg.github.com'
+          scope: '@PedroFeitosaSoares' 
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Publicar no GitHub Packages
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
