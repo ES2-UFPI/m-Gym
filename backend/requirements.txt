@@ -8,3 +8,5 @@ passlib[bcrypt]
 bcrypt
 python-multipart
 pytest
+httpx
+fastapi httpx
