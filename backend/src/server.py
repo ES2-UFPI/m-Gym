@@ -264,7 +264,21 @@ def criar_atividade(
     db.add(nova_atividade)
     db.commit()
     db.refresh(nova_atividade)
-    return nova_atividade
+    
+    encoded_photo = (
+        f"data:image/jpeg;base64,{base64.b64encode(nova_atividade.photo).decode('utf-8')}"
+        if nova_atividade.photo else None
+    )
+
+    return {
+        "id": nova_atividade.id,
+        "user_id": nova_atividade.user_id,
+        "challenge_id": nova_atividade.challenge_id,
+        "content": nova_atividade.content,
+        "comment": nova_atividade.comment,
+        "created_at": nova_atividade.created_at,
+        "photo": encoded_photo
+    }
 
 @app.get("/atividades-total")
 def listar_todas_atividades(db: Session = Depends(get_db)):
