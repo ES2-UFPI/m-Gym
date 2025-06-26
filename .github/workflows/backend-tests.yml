@@ -1,0 +1,38 @@
+name: Backend Tests
+
+on:
+  push:
+    branches: [ main , dev ]
+  pull_request:
+    branches: [ main , dev ]
+
+jobs:
+  test-backend:
+    name: Testes do Backend
+
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: Checkout do repositório
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Instalar dependências do backend
+        run: |
+          python -m venv venv
+          source venv/bin/activate
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Rodar testes do backend com pytest
+        run: |
+          source venv/bin/activate
+          pytest tests/ --maxfail=1 --disable-warnings -q

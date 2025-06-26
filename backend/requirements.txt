@@ -6,3 +6,6 @@ sqlalchemy
 python-jose
 passlib[bcrypt]
 bcrypt
+python-multipart
+pytest
+httpx
