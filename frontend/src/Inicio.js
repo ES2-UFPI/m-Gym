@@ -580,14 +580,14 @@ function Inicio() {
       );
       const data = await res.json();
       if (!res.ok) {
-        alert(data.detail || "Erro ao postar atividade.");
+        alert(data.detail || "");
       } else {
         alert("Atividade postada com sucesso!");
         e.target.reset();
         setArquivoImagem(null);
       }
     } catch {
-      alert("Erro na conexão.");
+      alert("");
     }
   }}
 >
@@ -656,56 +656,59 @@ function Inicio() {
       <p>Nenhuma atividade publicada ainda.</p>
     ) : (
       atividadesUsuarios.map((act) => (
+  <div
+    key={act.id}
+    style={{
+      border: "1px solid #ccc",
+      borderRadius: 8,
+      padding: 10,
+      marginBottom: 10,
+      background: "#fff",
+    }}
+  >
+    <p style={{ display: "flex", alignItems: "center", gap: 8 }}>
+      {act.user.photo ? (
+        <img
+          src={act.user.photo}
+          alt={act.user.login}
+          style={{ width: 32, height: 32, borderRadius: "50%", objectFit: "cover" }}
+        />
+      ) : (
         <div
-          key={act.id}
           style={{
-            border: "1px solid #ccc",
-            borderRadius: 8,
-            padding: 10,
-            marginBottom: 10,
-            background: "#fff",
+            width: 32,
+            height: 32,
+            borderRadius: "50%",
+            background: "#eee",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontWeight: "bold",
           }}
         >
-          <p style={{ display: "flex", alignItems: "center", gap: 8 }}>
-  {act.user.photo ? (
-    <img
-      src={`data:image/jpeg;base64,${act.user.photo}`}
-      alt={act.user.login}
-      style={{ width: 32, height: 32, borderRadius: "50%", objectFit: "cover" }}
-    />
-  ) : (
-    <div
-      style={{
-        width: 32,
-        height: 32,
-        borderRadius: "50%",
-        background: "#eee",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        fontWeight: "bold",
-      }}
-    >
-      {act.user.login.charAt(0)}
-    </div>
-  )}
-  <strong>{act.user.login}</strong>
-</p>
-          <p><strong>Conteúdo:</strong> {act.content || "—"}</p>
-          {act.photo && (
-            <img
-              src={`data:image/jpeg;base64,${act.photo}`}
-              alt="Foto da atividade"
-              style={{ maxWidth: "100%", borderRadius: 6, margin: "8px 0" }}
-            />
-          )}
-          {act.comment && <p><strong>Comentário:</strong> {act.comment}</p>}
-          <p>
-            <strong>Criado em:</strong>{" "}
-            {new Date(act.created_at).toLocaleString()}
-          </p>
+          {act.user.login.charAt(0)}
         </div>
-      ))
+      )}
+      <strong>{act.user.login}</strong>
+    </p>
+
+    <p><strong>Conteúdo:</strong> {act.content || "—"}</p>
+
+    {act.photo && (
+      <img
+        src={act.photo}
+        alt="Foto da atividade"
+        style={{ maxWidth: "100%", borderRadius: 6, margin: "8px 0" }}
+      />
+    )}
+
+    {act.comment && <p><strong>Comentário:</strong> {act.comment}</p>}
+    <p>
+      <strong>Criado em:</strong>{" "}
+      {new Date(act.created_at).toLocaleString()}
+    </p>
+  </div>
+))
     )}
   </div>
 )}

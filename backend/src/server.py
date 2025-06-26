@@ -241,7 +241,7 @@ def registrar_participacao(challenge_id: int,
 
     return {"message": "Participação registrada com sucesso!"}
 
-@app.post("/atividades", response_model=ActivityResponse, status_code=201)
+@app.post("/atividades")
 def criar_atividade(
     challenge_id: int = Form(...),
     content: Optional[str] = Form(None),
@@ -252,7 +252,7 @@ def criar_atividade(
 ):
     photo_data = None
     if photo:
-        photo_data = base64.b64encode(photo.file.read())
+        photo_data = photo.file.read()   # <-- raw bytes do JPG
 
     nova_atividade = Activity(
         user_id=usuario_logado.id,
@@ -264,7 +264,21 @@ def criar_atividade(
     db.add(nova_atividade)
     db.commit()
     db.refresh(nova_atividade)
-    return nova_atividade
+    
+    encoded_photo = (
+        f"data:image/jpeg;base64,{base64.b64encode(nova_atividade.photo).decode('utf-8')}"
+        if nova_atividade.photo else None
+    )
+
+    return {
+        "id": nova_atividade.id,
+        "user_id": nova_atividade.user_id,
+        "challenge_id": nova_atividade.challenge_id,
+        "content": nova_atividade.content,
+        "comment": nova_atividade.comment,
+        "created_at": nova_atividade.created_at,
+        "photo": encoded_photo
+    }
 
 @app.get("/atividades-total")
 def listar_todas_atividades(db: Session = Depends(get_db)):
@@ -277,6 +291,16 @@ def listar_todas_atividades(db: Session = Depends(get_db)):
 
     retorno = []
     for atividade in atividades:
+        # codifica só aqui, já com prefixo
+        photo_data = (
+            f"data:image/jpeg;base64,{base64.b64encode(atividade.photo).decode('utf-8')}"
+            if atividade.photo else None
+        )
+        user_photo_data = (
+            f"data:image/jpeg;base64,{base64.b64encode(atividade.user.photo).decode('utf-8')}"
+            if atividade.user.photo else None
+        )
+
         retorno.append({
             "id": atividade.id,
             "user_id": atividade.user_id,
@@ -284,13 +308,12 @@ def listar_todas_atividades(db: Session = Depends(get_db)):
             "content": atividade.content,
             "comment": atividade.comment,
             "created_at": atividade.created_at,
-            "photo": base64.b64encode(atividade.photo).decode('utf-8') if atividade.photo else None,
+            "photo": photo_data,
             "user": {
                 "login": atividade.user.login,
-                "photo": base64.b64encode(atividade.user.photo).decode('utf-8') if atividade.user.photo else None
+                "photo": user_photo_data
             }
         })
-
     return retorno
 
 
